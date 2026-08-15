@@ -1,8 +1,9 @@
 {
-  "schema_version": "webactueel-command-result/1.0",
+  "schema_version": "webactueel-command-result/1.1",
   "request_id": "bootstrap-design-20260815-r2",
   "status": "success",
   "requested_by": "chatgpt-web",
+  "runtime": "chatgpt-web-github-direct",
   "command": "design",
   "target": "https://example.com/",
   "resolved_route": {
@@ -11,22 +12,22 @@
     "project_id": "project-design",
     "tool": "design_inspect_page",
     "capability": "design-inspection",
-    "selector_candidates": [
-      "system-accessibility",
-      "conversion-forms",
-      "quality-audit"
-    ],
-    "evidence_level": "controlled_runtime",
-    "write_target": false
+    "target_type": "public_url",
+    "write_target": false,
+    "legacy_replaces": null
   },
   "source_context": {
+    "integrity_status": "verified",
     "project_id": "project-design",
     "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
     "source_set_version": "2026-08-15.1-diagram-semantic-motion",
     "checked_at": "2026-08-15T16:20:00+02:00"
   },
-  "started_at": "2026-08-15T14:26:26.883Z",
-  "completed_at": "2026-08-15T14:26:29.766Z",
+  "preconditions": {
+    "lead_registry_preflight": null
+  },
+  "started_at": "2026-08-15T14:20:00.000Z",
+  "completed_at": "2026-08-15T14:36:17.473Z",
   "exit_code": 0,
   "evidence": {
     "schemaVersion": "1.0",
@@ -34,7 +35,7 @@
     "tool": "design_inspect_page",
     "target": "https://example.com/",
     "evidenceLevel": "controlled_runtime",
-    "capturedAt": "2026-08-15T14:26:29.751Z",
+    "capturedAt": "2026-08-15T14:36:17.451Z",
     "status": "ok",
     "data": {
       "title": "Example Domain",

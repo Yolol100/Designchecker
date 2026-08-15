@@ -39,8 +39,10 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   const skills = readJson('config/skill-registry.json');
   const capabilities = readJson('config/capability-registry.json');
   const direct = readJson('config/direct-command-registry.json');
+  const sources = readJson('config/project-source-bindings.json');
   const skillMap = new Map(skills.skills.map((item: any) => [item.id, item]));
   const capabilityMap = new Map(capabilities.capabilities.map((item: any) => [item.id, item]));
+  const bindingMap = new Map(sources.bindings.map((item: any) => [item.project_id, item]));
   assert.equal(direct.mcp_required, false);
   assert.equal(direct.api_key_required, false);
   assert.equal(direct.additional_account_required, false);
@@ -48,15 +50,20 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   for (const route of direct.routes) {
     const skill = skillMap.get(route.owner) as any;
     const capability = capabilityMap.get(route.capability) as any;
+    const binding = bindingMap.get(route.project_id) as any;
     assert.ok(skill, `Unknown direct owner ${route.owner}`);
     assert.ok(capability, `Unknown direct capability ${route.capability}`);
+    assert.ok(binding, `Missing source binding ${route.project_id}`);
     assert.equal(route.project_id, skill.project_id, `Direct project mismatch for ${route.command}/${route.owner}`);
+    assert.equal(binding.owner, route.owner, `Source owner mismatch for ${route.project_id}`);
+    assert.ok(binding.manifest_file_id, `Missing manifest ID for ${route.project_id}`);
     assert.ok(capability.consumers.includes(route.owner), `${route.owner} cannot consume ${route.capability}`);
     assert.ok(route.preconditions.includes('verified_live_source'), `${route.command}/${route.owner} must require verified live source`);
   }
   const formalLead = direct.routes.find((route: any) => route.command === 'lead-formal');
   assert.ok(formalLead.preconditions.includes('lead_registry_preflight_verified'));
-  assert.equal(formalLead.legacy_replaces, 'Yolol100/Leadscanner');
+  assert.equal(formalLead.status, 'blocked-contract');
+  assert.match(formalLead.blocked_reason, /Yolol100\/Leadscanner/);
   const seoTechnical = direct.routes.find((route: any) => route.command === 'seo-technical');
-  assert.equal(seoTechnical.legacy_replaces, 'Yolol100/seochecker');
+  assert.equal(seoTechnical.legacy_runtime_equivalent, 'Yolol100/seochecker');
 });

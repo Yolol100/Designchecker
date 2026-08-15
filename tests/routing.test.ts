@@ -92,9 +92,12 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
     assert.ok(route.trigger_when && route.do_not_trigger_when && route.why, `${command} must explain when, when not and why it runs`);
   }
   assert.equal(designRoutes.find((route: any) => route.command === 'design-baseline').capability, 'browser-baseline');
-  assert.equal(designRoutes.find((route: any) => route.command === 'design-diff').capability, 'visual-diff');
-  assert.equal(designRoutes.find((route: any) => route.command === 'design-diff').target_type, 'repo_input_pair');
+  const diffRoute = designRoutes.find((route: any) => route.command === 'design-diff');
+  assert.equal(diffRoute.capability, 'visual-diff');
+  assert.equal(diffRoute.target_type, 'repo_evidence_pair');
+  assert.ok(diffRoute.preconditions.includes('input_under_results_evidence'));
   assert.equal(integration.design.manifest_file_id, (bindingMap.get('project-design') as any).manifest_file_id);
+  assert.equal(integration.execution.evidence_pattern, 'results/evidence/<request_id>/');
   assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
 
   const formalLead = direct.routes.find((route: any) => route.command === 'lead-formal');
@@ -114,13 +117,15 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   assert.match(seoTechnical.scope_note, /does not claim full parity/i);
 });
 
-test('direct command runner enforces Design source selectors and supports baseline/diff artifacts', () => {
+test('direct command runner enforces Design selectors and persistent baseline/diff evidence', () => {
   const runner = readFileSync(path.join(process.cwd(), 'scripts/run-command.mjs'), 'utf8');
   assert.match(runner, /source_context\.selector_ids is required/);
   assert.match(runner, /No selected source selector is valid/);
   assert.match(runner, /command === 'design-baseline'/);
   assert.match(runner, /command === 'design-diff'/);
-  assert.match(runner, /results', 'artifacts', requestId/);
+  assert.match(runner, /results', 'evidence', requestId/);
+  assert.match(runner, /must remain under results\/evidence/);
+  assert.match(runner, /must reference an existing evidence file/);
   assert.match(runner, /before_path/);
   assert.match(runner, /after_path/);
 });

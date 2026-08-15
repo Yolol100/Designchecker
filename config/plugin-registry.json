@@ -1,12 +1,20 @@
 {
-  "schema_version": "1.1",
-  "note": "Inventory only. Repository code does not install a ChatGPT app by itself.",
+  "schema_version": "1.2",
+  "note": "The default ChatGPT Web execution path is the already-connected GitHub app plus GitHub Actions. No custom MCP installation, extra vendor account or API key is required for that direct route.",
+  "default_runtime": {
+    "id":"chatgpt-web-github-direct",
+    "transport":"GitHub app write to requests/command.json -> GitHub Actions -> results/<request_id>.json",
+    "additional_account_required":false,
+    "api_key_required":false,
+    "mcp_required":false,
+    "source_gate":"registered live Google Drive manifest"
+  },
   "existing_or_optional_app_routes": [
     {"id":"figma","owner":"design","purpose":"explicit Figma reads/writes","auth_expected":true},
     {"id":"canva","owner":"design","purpose":"explicit Canva destination","auth_expected":true},
-    {"id":"github","owner":"inherit","purpose":"repository context and workflows","auth_expected":true},
-    {"id":"google-drive","owner":"inherit","purpose":"canonical project truth","auth_expected":true},
-    {"id":"ahrefs","owner":"seo","purpose":"SEO metrics when available","auth_expected":true},
+    {"id":"github","owner":"inherit","purpose":"direct command runtime, repository context and workflows","auth_expected":true},
+    {"id":"google-drive","owner":"inherit","purpose":"canonical project truth and live source verification","auth_expected":true},
+    {"id":"ahrefs","owner":"seo","purpose":"SEO market/ranking/link metrics when available","auth_expected":true},
     {"id":"product-design","owner":"design","purpose":"Work/Codex prototype and audit routes","auth_expected":false}
   ],
   "custom_mcp": {
@@ -16,7 +24,7 @@
     "auth_required":false,
     "api_key_required":false,
     "target_writes":false,
-    "repository_status":"ready",
-    "chatgpt_status":"not-connected-until-a-reachable-https-mcp-endpoint-is-added-on-a-supported-surface"
+    "repository_status":"optional-backwards-compatible",
+    "chatgpt_status":"not-required-for-default-runtime"
   }
 }

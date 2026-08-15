@@ -1,15 +1,15 @@
 {
-  "schema_version":"1.1",
-  "status":"central-runtime-active-with-leads-exception",
+  "schema_version":"1.2",
+  "status":"central-runtime-active-with-explicit-source-and-contract-blockers",
   "central_repository":"Yolol100/Designchecker",
   "default_surface":"chatgpt-web-github-direct",
   "mcp_required":false,
   "migrations":[
-    {"legacy_repository":"Yolol100/seochecker","replacement_command":"seo-technical","owner":"seo","project_id":"project-seo","runtime_status":"validated","source_reference_status":"legacy-reference-still-present"},
-    {"legacy_repository":"Yolol100/Leadscanner","replacement_command":null,"owner":"leads","project_id":"project-leads","runtime_status":"not-replaced","reason":"Installed Leads Skill and Project Leads 10.5.0 require Yolol100/Leadscanner provenance and handoff format 1.1. Keep the legacy capability for formal qualification until the Skill contract is intentionally updated."},
+    {"legacy_repository":"Yolol100/seochecker","replacement_command":"seo-technical","owner":"seo","project_id":"project-seo","runtime_status":"validated-bounded","execution_status":"blocked-source-integrity","reason":"The direct Designchecker runtime is proven, but Project SEO canonical manifest/checksum drift must be repaired before the new route becomes canonical. seo-technical is bounded evidence and is not claimed as full legacy stack parity."},
+    {"legacy_repository":"Yolol100/Leadscanner","replacement_command":null,"owner":"leads","project_id":"project-leads","runtime_status":"not-formally-replaced","reason":"Project Leads 10.5.0 requires webactueel-leadscanner-ingest/1.0 provenance and artifact readback. Keep formal qualification on the contract-compliant path until Designchecker implements and passes that exact contract."},
     {"legacy_repository":"Yolol100/elementorjson","replacement_command":"elementor-json","owner":"elementor","project_id":"project-elementor","runtime_status":"validated"},
-    {"legacy_repository":"Yolol100/programmeren","replacement_commands":["performance","html"],"owner":"wordpressqualityarchitect","project_id":"project-plugin","runtime_status":"central-evidence-capabilities-active","note":"The installed wordpressqualityarchitect Skill remains the code/audit owner; Designchecker does not replace its full code-review method."},
-    {"legacy_repository":"Yolol100/Checklist","replacement_commands":["qa","a11y","links","performance","html"],"owner":"website-qa-checklist","project_id":"project-checklist","runtime_status":"central-evidence-capabilities-active","note":"Website QA Skill remains the acceptance owner; Designchecker only supplies evidence."}
+    {"legacy_repository":"Yolol100/programmeren","replacement_commands":["performance","html"],"owner":"wordpressqualityarchitect","project_id":"project-plugin","runtime_status":"central-evidence-capabilities-active","note":"wordpressqualityarchitect remains code/audit/release owner; Designchecker supplies bounded technical evidence only."},
+    {"legacy_repository":"Yolol100/Checklist","replacement_commands":["qa","a11y","links","performance","html"],"owner":"website-qa-checklist","project_id":"project-checklist","runtime_status":"central-evidence-capabilities-active","note":"Website QA remains independent acceptance owner; Designchecker supplies evidence only."}
   ],
-  "policy":"Legacy repositories are not project truth. Installed Skills remain method owners; registered Drive manifests remain project truth. Do not claim a legacy runtime replaced when the active Skill contract still hard-requires its identity or provenance."
+  "policy":"Legacy repositories are not project truth. Installed Skills remain method owners; registered Drive manifests remain project truth. A runtime may be technically healthy while a project route remains blocked by source integrity or a specialist provenance contract."
 }

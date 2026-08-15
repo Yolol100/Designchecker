@@ -1,18 +1,27 @@
 # Routingcontract
 
-De repository is een capability-laag, geen tweede inhoudelijke eigenaar.
+De repository is een capability- en uitvoerlaag, geen tweede inhoudelijke eigenaar.
 
 Vaste volgorde: `doel -> domain_owner -> live projectbron -> taakrelevante selector -> capability -> tool -> evidence`.
 
 - `webactueel-workflow` bepaalt de eigenaar en beheert cross-skill routing.
-- De canonieke Skill-router staat in `webactueel-workflow/references/skill-registry.json`.
-- De canonieke projectbronrouter staat in `webactueel-workflow/references/project-source-registry.json`.
-- `config/tool-routing.json` koppelt MCP-tools aan dezelfde owners, project-ID's en selector-ID's, maar kopieert geen projectinhoud of Drive-manifest.
-- Een tool mag geen andere domain owner creëren. Gedeelde engines erven de primaire eigenaar van de route.
-- Projectspecifiek werk vereist een live read van het geregistreerde Drive-manifest voordat projectclaims worden gedaan.
-- Leads vereist eerst de persistente Lead Registry; deze repo kwalificeert of mailt nooit zelfstandig.
-- Website QA blijft eigenaar van onafhankelijke runtime-GO/No-Go. Automatische scans alleen zijn nooit voldoende voor WCAG-, conversie-, ranking- of productieclaims.
+- Skills bevatten herbruikbare methode; geregistreerde Drive-manifesten bevatten projectwaarheid.
+- `config/project-source-bindings.json` bindt elk project aan één exact live manifest-ID en blokkeert uitvoering bij open bronintegriteitsconflict.
+- `config/direct-command-registry.json` bepaalt command, owner, project, capability, preconditions en evidence-scope voor ChatGPT Web.
+- `config/tool-routing.json` koppelt de gedeelde meettools aan dezelfde owners en selectorfamilies.
+- Een tool creëert nooit een tweede domain owner. Gedeelde engines erven de primaire route-owner.
+- Leads vereist eerst de persistente Lead Registry; supportbewijs is geen formele kwalificatie.
+- Website QA blijft eigenaar van onafhankelijke runtime-GO/No-Go.
 
 ## ChatGPT-trigger
 
-De repository alleen installeert geen ChatGPT-plugin. Automatische toolselectie ontstaat pas wanneer de MCP-server als bereikbare custom MCP-capability op de actuele ChatGPT-surface is verbonden. De MCP-toolbeschrijvingen bevatten daarom owner- en bronvoorwaarden, terwijl `config/tool-routing.json` de machineleesbare controlelaag vormt.
+Normale ChatGPT Web gebruikt standaard geen MCP. Na live bronverificatie schrijft ChatGPT `requests/command.json` via de bestaande GitHub-app. GitHub Actions voert het command uit en commit evidence terug naar `results/`. MCP blijft alleen een optionele backwards-compatible interface.
+
+## Harde poorten
+
+- verkeerd owner/project/manifest-ID -> blokkeren;
+- niet-geverifieerde of >24 uur oude broncontext -> blokkeren;
+- projectbinding met `execution_status != ready` -> blokkeren;
+- commandroute met `status != ready` -> blokkeren;
+- Leads zonder Registry-preflight -> blokkeren;
+- formele Leads zonder actueel provenancecontract -> blokkeren.

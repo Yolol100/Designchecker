@@ -1,26 +1,35 @@
 # ChatGPT Web koppeling
 
-Deze repo bevat één MCP HTTP-server op `/mcp`. De repository alleen installeert of activeert geen ChatGPT-plugin.
+## Primaire route: direct via GitHub
 
-## Vereiste keten
+De standaardroute vereist geen custom MCP, tunnel, API-key of extra leveranciersaccount. ChatGPT gebruikt de bestaande GitHub- en Google Drive-koppelingen.
 
-1. De code staat op `main` en CI is groen.
-2. Start of host de MCP-server.
-3. Maak `/mcp` via HTTPS bereikbaar.
-4. Voeg die HTTPS-MCP endpoint toe op een ChatGPT-surface die custom MCP ondersteunt.
-5. Controleer runtime-exposure voordat een Skill de capability als uitvoerbaar behandelt.
+1. `webactueel-workflow` bepaalt doel en `domain_owner`.
+2. ChatGPT leest het exact geregistreerde live Drive-manifest en alleen de taakrelevante bron/selectors.
+3. Alleen bij geldige owner/project/manifest-koppeling en `integrity_status=verified` wordt een command opgebouwd.
+4. ChatGPT schrijft `requests/command.json` naar `main` via de verbonden GitHub-app.
+5. De push triggert automatisch `.github/workflows/command.yml`.
+6. `scripts/run-command.mjs` controleert opnieuw commandstatus, projectbinding, exact manifest-ID, bronfreshness en preconditions.
+7. GitHub Actions voert de target-read-only capability uit.
+8. Het resultaat wordt als `results/<request_id>.json` teruggecommit.
+9. De owning Skill interpreteert het bewijs; Website QA bezit onafhankelijke releaseacceptatie waar nodig.
 
-Standaard bindt de server alleen op `127.0.0.1` en accepteert hij alleen localhost-hostheaders. Voor een tunnel of remote host moet `MCP_ALLOWED_HOSTS` expliciet de publieke hostname bevatten. `MCP_ALLOWED_ORIGINS` kan optioneel verder beperken. De tool zelf vereist geen leveranciersaccount of API-key; een gekozen hosting- of tunnelmethode kan wel eigen voorwaarden hebben.
+`config/project-source-bindings.json` kan een heel project blokkeren wanneer bronintegriteit niet klopt. Een technisch gezonde runner is dus niet genoeg om een brononzuivere route toch uit te voeren.
 
-## Routing
+## Geen extra installatie
 
-`webactueel-workflow` bepaalt eerst de `domain_owner`. Projectspecifiek werk leest vervolgens het geregistreerde live Drive-manifest en alleen de relevante selectorbronnen. Pas daarna wordt een tool uit `config/tool-routing.json` gekozen. De MCP-toolbeschrijvingen herhalen deze owner- en bronvoorwaarde om verkeerde automatische selectie te beperken.
+Voor deze primaire route hoeft de gebruiker in ChatGPT Web niets extra's te installeren. De reeds verbonden GitHub-app is de commandtransportlaag; Google Drive levert projectwaarheid. De repository gebruikt voor deze route geen externe API-key.
 
 ## Veiligheid
 
 - Doelsites worden niet gewijzigd.
-- Private/local literal targets worden standaard geblokkeerd.
-- MCP-artifactpaden blijven binnen `ARTIFACT_DIR`.
-- Writes naar Figma, WordPress, Elementor, Gmail, Drive of productie horen bij bestaande Skill/app-routes.
-- De Leads-route vereist eerst de Lead Registry en verstuurt nooit automatisch e-mail.
-- Website QA blijft eigenaar van runtime-GO/No-Go.
+- Alleen `http:`/`https:` publieke targets worden geaccepteerd.
+- Localhost, private literal IP's en hostnames die naar geblokkeerde private/loopback ranges resolven worden standaard geweigerd.
+- Broncontext ouder dan 24 uur wordt geweigerd.
+- Leads vereist Lead Registry-preflight; geen account-enumeratie, formulieren, login of e-mailactie.
+- `lead-formal` is geblokkeerd totdat het actuele Project Leads-provenancecontract exact wordt ondersteund.
+- Project SEO is geblokkeerd zolang de live Drive manifest/checksumdrift openstaat.
+
+## Optioneel MCP
+
+`src/mcp/` blijft bestaan als optionele backwards-compatible interface voor andere surfaces. Het is niet nodig voor de normale ChatGPT-Web commandroute en hoeft niet te worden aangesloten.

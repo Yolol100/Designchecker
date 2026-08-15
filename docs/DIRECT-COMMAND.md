@@ -1,33 +1,32 @@
 # Direct ChatGPT Web command route
 
-This is the default execution route for normal ChatGPT Web in Designchecker. It does not require MCP, a tunnel, an API key, or another vendor account. It uses the GitHub app already connected to ChatGPT and the repository's own GitHub Actions token.
+Dit is de standaarduitvoering voor normale ChatGPT Web. Geen MCP, tunnel, API-key of extra leveranciersaccount is nodig; de route gebruikt de bestaande GitHub-app en GitHub Actions.
 
 ## Contract
 
-1. `webactueel-workflow` resolves goal -> domain owner -> registered live Google Drive manifest -> task-relevant selector -> capability.
-2. ChatGPT reads the live Drive source through the existing connector and only emits a command with `source_context.integrity_status=verified` when owner, project ID and active source set are consistent.
-3. The runner requires the exact registered manifest ID from `config/project-source-bindings.json`; an arbitrary file cannot impersonate project truth.
-4. For Leads, the Lead Registry preflight happens before any browser-support command.
-5. ChatGPT writes `requests/command.json` through the connected GitHub app.
-6. The push to `main` automatically triggers `.github/workflows/command.yml`.
-7. `scripts/run-command.mjs` revalidates owner, project, source freshness, exact manifest identity, required preconditions and command registry.
-8. The selected target-read-only capability runs on a GitHub-hosted runner. Browserless commands do not install Chromium.
-9. Evidence is committed to `results/<request_id>.json`.
-10. The owning Skill interprets evidence. Website QA independently owns integrated release acceptance where required.
+1. `webactueel-workflow` resolveert doel -> domain owner -> geregistreerd live Drive-manifest -> taakrelevante selector -> capability.
+2. ChatGPT leest live Drive en zet alleen `source_context.integrity_status=verified` wanneer owner, project-ID, manifest-ID en actieve bronset werkelijk kloppen.
+3. `config/project-source-bindings.json` vereist het exacte manifest-ID en kan een project bij bronconflict volledig blokkeren.
+4. Voor Leads gebeurt Lead Registry-preflight vóór browser-supportbewijs.
+5. ChatGPT schrijft `requests/command.json` via de verbonden GitHub-app.
+6. De push naar `main` triggert `.github/workflows/command.yml`.
+7. `scripts/run-command.mjs` valideert opnieuw owner, project, commandstatus, bronfreshness, manifestidentiteit en preconditions.
+8. De geselecteerde target-read-only capability draait op GitHub Actions; browserloze commands installeren geen Chromium.
+9. Evidence wordt gecommit naar `results/<request_id>.json`.
+10. De owning Skill interpreteert evidence. Website QA bezit onafhankelijke geïntegreerde releaseacceptatie waar vereist.
 
-## Ready commands
+## Beschikbaarheid
 
-- Design: `design`, `a11y`.
-- SEO: `seo`, `seo-technical`, `links`, `performance`, `html`.
-- Elementor: `elementor`, `elementor-json`.
-- Leads support only: `leads` after verified Registry preflight. This is not formal qualification evidence.
-- WordPress/Programmeren evidence: `performance`, `html`; `wordpressqualityarchitect` remains the code/release owner.
-- Website QA evidence: `qa`, `a11y`, `links`, `performance`, `html`; Website QA remains the acceptance owner.
+- Design: `design`, `a11y` — ready wanneer Project Design live bronintegriteit geldig is.
+- SEO: `seo`, `seo-technical`, `links`, `performance`, `html` — runtime bewezen, maar momenteel projectbreed geblokkeerd wegens live Project SEO manifest/checksumdrift.
+- Elementor: `elementor`, `elementor-json` — ready met live Project Elementor-broncontext.
+- Leads support: `leads` — alleen na geverifieerde Lead Registry-preflight; geen formele kwalificatie.
+- Leads formal: `lead-formal` — geblokkeerd totdat `webactueel-leadscanner-ingest/1.0` provenance + artifact-readback exact is geïmplementeerd en gevalideerd.
+- WordPress/Programmeren: `performance`, `html` — ready; `wordpressqualityarchitect` blijft code/release-owner.
+- Website QA: `qa`, `a11y`, `links`, `performance`, `html` — ready; Website QA blijft acceptance-owner.
 
-## Leads exception
+## Bewijsgrens
 
-`lead-formal` is intentionally blocked. The installed Leads Skill and Project Leads 10.5.0 require repository identity `Yolol100/Leadscanner`, workflow/provenance rules and `webactueel-leadscanner-handoff/1.1`. Designchecker must not fake that provenance. Formal Leads qualification therefore keeps using the existing Leadscanner capability until the Leads Skill contract itself is intentionally updated, revalidated and installed. No extra MCP/API key is introduced by Designchecker.
+`seo-technical` is bewust bounded current-page technical evidence; het wordt niet als volledige functionele kopie van de oude seochecker-crawlstack geclaimd. Gedeelde tools leveren meetbewijs maar nemen geen vakbesluit over van de Skill.
 
-## Safety boundary
-
-Commands are evidence-only and never modify the audited website. A command without a verified, current live-source context is rejected. Private/local literal targets and hostnames resolving to blocked network ranges are rejected. Leads support commands never perform account enumeration, contact enrichment, form submission or email actions.
+Commands wijzigen de doelsite nooit. Een command zonder geldige, actuele, bronintegere live-source context wordt geweigerd.

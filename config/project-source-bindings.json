@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.0",
-  "rule": "Every direct command must be bound to the registered live Google Drive project manifest before execution. Source-set versions are read live and are not pinned here.",
+  "schema_version": "1.1",
+  "rule": "Every direct command must be bound to the registered live Google Drive project manifest before execution. Source-set versions are read live and are not pinned here. A project with unresolved source-integrity drift is non-executable even when the runtime itself is healthy.",
   "bindings": [
     {"project_id":"project-design","owner":"design","manifest_file_id":"12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg","execution_status":"ready"},
-    {"project_id":"project-seo","owner":"seo","manifest_file_id":"1NoOIhEqCPDpj18_enRIaRCZoGXorr19q","execution_status":"ready","canonical_route_note":"Project SEO still contains a legacy seochecker reference; the Designchecker direct runtime is validated but the source text has not yet been rewritten."},
+    {"project_id":"project-seo","owner":"seo","manifest_file_id":"1NoOIhEqCPDpj18_enRIaRCZoGXorr19q","execution_status":"blocked-source-integrity","blocking_reason":"Live raw Drive audit on 2026-08-15 found PROJECT-MANIFEST.md and SHA256SUMS.txt out of sync with source-registry.md, capability-registry.md and tool-plugin-registry.md. The runtime is validated, but new SEO direct commands must wait until the canonical Drive source set is reconciled and re-hashed.","rollback_folder_id":"1rNr86bAHih6NqhQumJzM9YL5OPJK0gKh"},
     {"project_id":"project-elementor","owner":"elementor","manifest_file_id":"1XdkPxfA5GpDaDfYjGfFTJJsqeCLtOjrR","execution_status":"ready"},
     {"project_id":"project-plugin","owner":"wordpressqualityarchitect","manifest_file_id":"1Gw03B2jOJ9gpMQR0l-YfS6I1EuAIji9f","execution_status":"ready"},
-    {"project_id":"project-leads","owner":"leads","manifest_file_id":"1lUuATbHRXkQ2RVlsTbEzsgOXOHwYjqiA","execution_status":"ready","formal_scan_status":"blocked-contract","formal_scan_reason":"Installed Leads Skill validation requires repository Yolol100/Leadscanner and webactueel-leadscanner-handoff/1.1. Do not claim Designchecker lead-formal as formal Leads evidence until that Skill contract is updated and revalidated."},
+    {"project_id":"project-leads","owner":"leads","manifest_file_id":"1lUuATbHRXkQ2RVlsTbEzsgOXOHwYjqiA","execution_status":"ready","formal_scan_status":"blocked-contract","formal_scan_reason":"Project Leads 10.5.0 requires provenance-bound Leadscanner ingestion with webactueel-leadscanner-ingest/1.0 and artifact readback. Designchecker lead-formal does not yet implement that exact contract and therefore cannot be used as formal qualification evidence."},
     {"project_id":"project-checklist","owner":"website-qa-checklist","manifest_file_id":"1P4jFmUFGjZIEAv2nwrrvV8c9egq0iEHC","execution_status":"ready"}
   ]
 }

@@ -1,0 +1,12 @@
+{
+  "request_id": "vendor-specialists-20260815-01",
+  "requested_by": "chatgpt-web",
+  "repositories": [
+    "Yolol100/seochecker",
+    "Yolol100/Leadscanner",
+    "Yolol100/elementorjson",
+    "Yolol100/programmeren",
+    "Yolol100/Checklist"
+  ],
+  "mode": "copy-runtime-code-and-contracts"
+}

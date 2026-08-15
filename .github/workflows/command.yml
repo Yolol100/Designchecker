@@ -34,7 +34,7 @@ jobs:
         run: |
           command=$(node -p "JSON.parse(require('fs').readFileSync('requests/command.json','utf8')).command")
           case "$command" in
-            seo-technical|elementor-json|html)
+            seo-technical|elementor-json|html|design-diff)
               echo "requires_browser=false" >> "$GITHUB_OUTPUT"
               ;;
             *)

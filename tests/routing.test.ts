@@ -40,13 +40,26 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   const capabilities = readJson('config/capability-registry.json');
   const direct = readJson('config/direct-command-registry.json');
   const sources = readJson('config/project-source-bindings.json');
+  const integration = readJson('config/designchecker-integration-contract.json');
   const skillMap = new Map(skills.skills.map((item: any) => [item.id, item]));
   const capabilityMap = new Map(capabilities.capabilities.map((item: any) => [item.id, item]));
   const bindingMap = new Map(sources.bindings.map((item: any) => [item.project_id, item]));
+  assert.equal(direct.runtime_capability, 'designchecker-direct');
+  assert.equal(skills.default_chatgpt_web_runtime, 'designchecker-direct');
+  assert.equal(integration.runtime_capability, 'designchecker-direct');
   assert.equal(direct.mcp_required, false);
   assert.equal(direct.api_key_required, false);
   assert.equal(direct.additional_account_required, false);
   assert.equal(direct.source_integrity_required, true);
+  const runtimeCapability = capabilityMap.get('designchecker-direct') as any;
+  assert.ok(runtimeCapability);
+  assert.equal(runtimeCapability.mcp_required, false);
+  assert.equal(runtimeCapability.api_key_required, false);
+  assert.equal(runtimeCapability.additional_account_required, false);
+  assert.equal(runtimeCapability.automatic_selection, true);
+  for (const owner of ['webactueel-workflow','design','seo','elementor','wordpressqualityarchitect','leads','website-qa-checklist']) {
+    assert.ok(runtimeCapability.consumers.includes(owner), `${owner} must be able to use Designchecker direct runtime`);
+  }
 
   const allowedBindingStatuses = new Set(['ready', 'blocked-source-integrity']);
   for (const binding of sources.bindings) {
@@ -66,7 +79,23 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
     assert.equal(binding.owner, route.owner, `Source owner mismatch for ${route.project_id}`);
     assert.ok(capability.consumers.includes(route.owner), `${route.owner} cannot consume ${route.capability}`);
     assert.ok(route.preconditions.includes('verified_live_source'), `${route.command}/${route.owner} must require verified live source`);
+    if (route.preconditions.includes('selected_source_selector')) {
+      assert.ok(Array.isArray(route.source_selectors) && route.source_selectors.length > 0, `${route.command}/${route.owner} must declare valid source selectors`);
+    }
   }
+
+  const designRoutes = direct.routes.filter((route: any) => route.owner === 'design');
+  for (const command of ['design', 'a11y', 'design-baseline', 'design-diff']) {
+    const route = designRoutes.find((candidate: any) => candidate.command === command);
+    assert.ok(route, `Missing Design direct command ${command}`);
+    assert.ok(route.preconditions.includes('selected_source_selector'), `${command} must be source-selector bound`);
+    assert.ok(route.trigger_when && route.do_not_trigger_when && route.why, `${command} must explain when, when not and why it runs`);
+  }
+  assert.equal(designRoutes.find((route: any) => route.command === 'design-baseline').capability, 'browser-baseline');
+  assert.equal(designRoutes.find((route: any) => route.command === 'design-diff').capability, 'visual-diff');
+  assert.equal(designRoutes.find((route: any) => route.command === 'design-diff').target_type, 'repo_input_pair');
+  assert.equal(integration.design.manifest_file_id, (bindingMap.get('project-design') as any).manifest_file_id);
+  assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
 
   const formalLead = direct.routes.find((route: any) => route.command === 'lead-formal');
   assert.ok(formalLead.preconditions.includes('lead_registry_preflight_verified'));
@@ -83,4 +112,15 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
 
   const seoTechnical = direct.routes.find((route: any) => route.command === 'seo-technical');
   assert.match(seoTechnical.scope_note, /does not claim full parity/i);
+});
+
+test('direct command runner enforces Design source selectors and supports baseline/diff artifacts', () => {
+  const runner = readFileSync(path.join(process.cwd(), 'scripts/run-command.mjs'), 'utf8');
+  assert.match(runner, /source_context\.selector_ids is required/);
+  assert.match(runner, /No selected source selector is valid/);
+  assert.match(runner, /command === 'design-baseline'/);
+  assert.match(runner, /command === 'design-diff'/);
+  assert.match(runner, /results', 'artifacts', requestId/);
+  assert.match(runner, /before_path/);
+  assert.match(runner, /after_path/);
 });

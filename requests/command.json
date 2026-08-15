@@ -1,16 +1,16 @@
 {
   "enabled": true,
-  "request_id": "wordpress-html-owner-smoke-20260815",
+  "request_id": "design-direct-postgovernance-20260815",
   "requested_by": "chatgpt-web",
-  "command": "html",
+  "command": "design",
   "target": "https://example.com/",
-  "owner": "wordpressqualityarchitect",
-  "project_id": "project-plugin",
+  "owner": "design",
+  "project_id": "project-design",
   "source_context": {
     "integrity_status": "verified",
-    "project_id": "project-plugin",
-    "manifest_file_id": "1Gw03B2jOJ9gpMQR0l-YfS6I1EuAIji9f",
-    "source_set_version": "2026-08-13.1-general-software-verification",
-    "checked_at": "2026-08-15T16:46:28+02:00"
+    "project_id": "project-design",
+    "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
+    "source_set_version": "2026-08-15.1-diagram-semantic-motion",
+    "checked_at": "2026-08-15T17:17:19+02:00"
   }
 }

@@ -14,7 +14,7 @@ Dit is de standaarduitvoering voor normale ChatGPT Web. Geen MCP, tunnel, API-ke
 8. De push naar `main` triggert `.github/workflows/command.yml`.
 9. `scripts/run-command.mjs` valideert opnieuw owner, project, commandstatus, bronfreshness, manifestidentiteit, selectors en preconditions.
 10. De geselecteerde target-read-only capability draait op GitHub Actions; browserloze commands installeren geen Chromium.
-11. Evidence wordt gecommit naar `results/<request_id>.json`; gegenereerde screenshots/diffs staan onder `results/artifacts/<request_id>/`.
+11. Evidence wordt gecommit naar `results/<request_id>.json`; herbruikbare screenshots/diffs staan onder `results/evidence/<request_id>/`.
 12. De owning Skill interpreteert evidence. Website QA bezit onafhankelijke geïntegreerde releaseacceptatie waar vereist.
 
 ## Design
@@ -23,8 +23,8 @@ Designchecker wordt alleen gebruikt nadat `design` als owner is gekozen en Proje
 
 - `design`: rendered-page UX/UI-inspectie wanneer runtime-layout, hiërarchie, componenten, formulieren, CTA's of overflow de ontwerpbeslissing kunnen veranderen.
 - `a11y`: geautomatiseerde accessibility-risicosignalen; geen WCAG-conformiteitsclaim.
-- `design-baseline`: vóór redesign, cleanup, before/after, design-engineeringhandoff of een claim waarvoor een actuele reproduceerbare baseline nodig is.
-- `design-diff`: twee vergelijkbare screenshots onder `requests/inputs/` vergelijken; verschil is bewijs van verandering, niet automatisch van verbetering.
+- `design-baseline`: vóór redesign, cleanup, before/after, design-engineeringhandoff of een claim waarvoor een actuele reproduceerbare baseline nodig is. Desktop-, tablet- en mobilecaptures worden persistent onder `results/evidence/<request_id>/baseline/` bewaard.
+- `design-diff`: twee bestaande vergelijkbare screenshots onder `results/evidence/` vergelijken. Alleen bestaande evidencebestanden zijn toegestaan; willekeurige repositorypaden worden geweigerd. Het verschil is bewijs van verandering, niet automatisch van verbetering.
 
 Designcommands vereisen een passende Project Design-selector. Voorbeelden: `quality-audit`, `system-accessibility`, `evidence-baseline`, `handoff`, `design-engineering`, `claims-scoring`.
 

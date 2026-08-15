@@ -47,6 +47,14 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   assert.equal(direct.api_key_required, false);
   assert.equal(direct.additional_account_required, false);
   assert.equal(direct.source_integrity_required, true);
+
+  const allowedBindingStatuses = new Set(['ready', 'blocked-source-integrity']);
+  for (const binding of sources.bindings) {
+    assert.ok(allowedBindingStatuses.has(binding.execution_status), `Unsupported binding status ${binding.execution_status}`);
+    assert.ok(binding.manifest_file_id, `Missing manifest ID for ${binding.project_id}`);
+    if (binding.execution_status !== 'ready') assert.ok(binding.blocking_reason, `Blocked binding ${binding.project_id} requires a blocking reason`);
+  }
+
   for (const route of direct.routes) {
     const skill = skillMap.get(route.owner) as any;
     const capability = capabilityMap.get(route.capability) as any;
@@ -56,14 +64,23 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
     assert.ok(binding, `Missing source binding ${route.project_id}`);
     assert.equal(route.project_id, skill.project_id, `Direct project mismatch for ${route.command}/${route.owner}`);
     assert.equal(binding.owner, route.owner, `Source owner mismatch for ${route.project_id}`);
-    assert.ok(binding.manifest_file_id, `Missing manifest ID for ${route.project_id}`);
     assert.ok(capability.consumers.includes(route.owner), `${route.owner} cannot consume ${route.capability}`);
     assert.ok(route.preconditions.includes('verified_live_source'), `${route.command}/${route.owner} must require verified live source`);
   }
+
   const formalLead = direct.routes.find((route: any) => route.command === 'lead-formal');
   assert.ok(formalLead.preconditions.includes('lead_registry_preflight_verified'));
   assert.equal(formalLead.status, 'blocked-contract');
-  assert.match(formalLead.blocked_reason, /Yolol100\/Leadscanner/);
+  assert.match(formalLead.blocked_reason, /webactueel-leadscanner-ingest\/1\.0/);
+
+  const leadsBinding = bindingMap.get('project-leads') as any;
+  assert.equal(leadsBinding.formal_scan_status, 'blocked-contract');
+  assert.match(leadsBinding.formal_scan_reason, /webactueel-leadscanner-ingest\/1\.0/);
+
+  const seoBinding = bindingMap.get('project-seo') as any;
+  assert.equal(seoBinding.execution_status, 'blocked-source-integrity');
+  assert.ok(seoBinding.rollback_folder_id);
+
   const seoTechnical = direct.routes.find((route: any) => route.command === 'seo-technical');
-  assert.equal(seoTechnical.legacy_runtime_equivalent, 'Yolol100/seochecker');
+  assert.match(seoTechnical.scope_note, /does not claim full parity/i);
 });

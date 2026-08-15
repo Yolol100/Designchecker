@@ -1,0 +1,34 @@
+{
+  "name": "webactueel-designchecker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared read-only web evidence tools and MCP server for Webactueel specialist skills.",
+  "engines": { "node": ">=22.19.0" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test dist/tests/*.test.js",
+    "dev": "tsx src/cli.ts",
+    "mcp:stdio": "MCP_TRANSPORT=stdio tsx src/mcp/server.ts",
+    "mcp:http": "MCP_TRANSPORT=http tsx src/mcp/server.ts",
+    "setup:browsers": "playwright install chromium"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "axe-core": "^4.12.1",
+    "chrome-launcher": "^1.2.1",
+    "lighthouse": "^13.4.1",
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.61.0",
+    "sharp": "^0.35.3",
+    "vnu-jar": "^26.7.31",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^6.0.3"
+  }
+}

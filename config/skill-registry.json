@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "controller": "webactueel-workflow",
+  "skills": [
+    {"id":"design","role":"domain-owner","project_truth":"google-drive","capabilities":["design-inspection","browser-baseline","accessibility-signals","visual-diff"]},
+    {"id":"seo","role":"domain-owner","project_truth":"google-drive","capabilities":["seo-inspection","link-check","performance-signals","html-validation"]},
+    {"id":"elementor","role":"domain-owner","project_truth":"google-drive","capabilities":["elementor-inspection","browser-baseline","accessibility-signals"]},
+    {"id":"wordpressqualityarchitect","aliases":["programmeren"],"role":"conditional-domain-owner","project_truth":"google-drive","capabilities":["technical-evidence","html-validation","performance-signals"]},
+    {"id":"leads","role":"domain-owner","project_truth":"lead-registry-and-project-sources","capabilities":["public-site-inspection","contact-signal-inspection"]},
+    {"id":"website-qa-checklist","aliases":["checklist"],"role":"independent-qa-owner","project_truth":"google-drive","capabilities":["qa-evidence-bundle","browser-baseline","accessibility-signals","performance-signals"]}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "note": "Inventory only. Installing code here does not install ChatGPT apps.",
+  "existing_or_optional_app_routes": [
+    {"id":"figma","owner":"design","purpose":"explicit Figma reads/writes","auth_expected":true},
+    {"id":"canva","owner":"design","purpose":"explicit Canva destination","auth_expected":true},
+    {"id":"github","owner":"inherit","purpose":"repository context and PR workflows","auth_expected":true},
+    {"id":"google-drive","owner":"inherit","purpose":"canonical project truth","auth_expected":true},
+    {"id":"ahrefs","owner":"seo","purpose":"SEO metrics when available","auth_expected":true},
+    {"id":"product-design","owner":"design","purpose":"Work/Codex prototype and audit routes","auth_expected":false}
+  ],
+  "custom_no_key_layer": "src/mcp/server.ts"
+}

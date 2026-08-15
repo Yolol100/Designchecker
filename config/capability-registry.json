@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "policy": "read-only-evidence",
+  "capabilities": [
+    {"id":"browser-baseline","engine":"playwright","account_required":false,"api_key_required":false,"owners":["design","elementor","website-qa-checklist"]},
+    {"id":"accessibility-signals","engine":"axe-core","account_required":false,"api_key_required":false,"owners":["design","website-qa-checklist"]},
+    {"id":"performance-signals","engine":"lighthouse","account_required":false,"api_key_required":false,"owners":["design","seo","website-qa-checklist"]},
+    {"id":"visual-diff","engine":"pixelmatch+sharp","account_required":false,"api_key_required":false,"owners":["design","website-qa-checklist"]},
+    {"id":"html-validation","engine":"vnu-jar","account_required":false,"api_key_required":false,"owners":["seo","wordpressqualityarchitect","website-qa-checklist"]},
+    {"id":"link-check","engine":"native-fetch","account_required":false,"api_key_required":false,"owners":["seo","leads","website-qa-checklist"]},
+    {"id":"mcp-server","engine":"modelcontextprotocol-typescript-sdk","account_required":false,"api_key_required":false,"owners":["webactueel-workflow"]}
+  ]
+}

@@ -83,7 +83,7 @@ if (!source.manifest_file_id || !source.source_set_version || !source.checked_at
 }
 
 const startedAt = new Date().toISOString();
-const child = spawnSync(process.execPath, ['dist/cli.js', cliCommand, target], {
+const child = spawnSync(process.execPath, ['dist/src/cli.js', cliCommand, target], {
   encoding: 'utf8',
   env: process.env,
   maxBuffer: 20 * 1024 * 1024

@@ -18,6 +18,13 @@ const required = (value, label) => {
   return value;
 };
 
+const assertRepoInputPath = (value, label) => {
+  const input = String(required(value, label));
+  const normalized = path.normalize(input).replaceAll('\\', '/');
+  if (!normalized.startsWith('requests/inputs/') || normalized.includes('../')) throw new Error(`${label} must remain under requests/inputs/.`);
+  return normalized;
+};
+
 const requestId = String(required(request.request_id, 'request_id'));
 if (!/^[a-zA-Z0-9._-]{6,120}$/.test(requestId)) throw new Error('request_id contains unsupported characters.');
 const command = String(required(request.command, 'command'));
@@ -41,13 +48,21 @@ if (!Number.isFinite(checkedAt)) throw new Error('source_context.checked_at is i
 if (Date.now() - checkedAt > 24 * 60 * 60 * 1000) throw new Error('source_context is older than 24 hours; re-read the live Drive manifest.');
 if (checkedAt - Date.now() > 10 * 60 * 1000) throw new Error('source_context.checked_at is unexpectedly in the future.');
 
+if (route.preconditions.includes('selected_source_selector')) {
+  if (!Array.isArray(source.selector_ids) || source.selector_ids.length === 0) throw new Error('source_context.selector_ids is required for this command.');
+  const matched = source.selector_ids.filter((selector) => route.source_selectors?.includes(selector));
+  if (matched.length === 0) throw new Error(`No selected source selector is valid for ${command}/${owner}.`);
+}
+
 const target = request.target ? String(request.target) : null;
-const inputPath = request.input_path ? String(request.input_path) : null;
+let inputPath = null;
+let beforePath = null;
+let afterPath = null;
 if (route.target_type === 'public_url' && !target) throw new Error('target is required for this command.');
-if (route.target_type === 'repo_input_file') {
-  if (!inputPath) throw new Error('input_path is required for this command.');
-  const normalized = path.normalize(inputPath).replaceAll('\\', '/');
-  if (!normalized.startsWith('requests/inputs/') || normalized.includes('../')) throw new Error('input_path must remain under requests/inputs/.');
+if (route.target_type === 'repo_input_file') inputPath = assertRepoInputPath(request.input_path, 'input_path');
+if (route.target_type === 'repo_input_pair') {
+  beforePath = assertRepoInputPath(request.before_path, 'before_path');
+  afterPath = assertRepoInputPath(request.after_path, 'after_path');
 }
 
 if (route.preconditions.includes('lead_registry_preflight_verified')) {
@@ -58,6 +73,8 @@ for (const field of ['lead_id', 'site_type', 'scan_policy_version']) {
   if (route.preconditions.includes(field) && !request[field]) throw new Error(`${field} is required.`);
 }
 
+const artifactRoot = path.join('results', 'artifacts', requestId);
+fs.mkdirSync(artifactRoot, { recursive: true });
 const startedAt = new Date().toISOString();
 let child;
 const common = {
@@ -69,7 +86,13 @@ const common = {
     WEBACTUEEL_EVIDENCE_TOOL: route.tool
   }
 };
-if (route.executor.kind === 'cli') {
+if (route.executor.kind === 'cli' && command === 'design-baseline') {
+  const baselineDir = path.join(artifactRoot, 'baseline');
+  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
+} else if (route.executor.kind === 'cli' && command === 'design-diff') {
+  const diffPath = path.join(artifactRoot, 'visual-diff.png');
+  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, beforePath, afterPath, diffPath], common);
+} else if (route.executor.kind === 'cli') {
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);
 } else if (route.executor.kind === 'python') {
   child = spawnSync('python3', [route.executor.path, target], common);
@@ -98,14 +121,16 @@ try {
   evidence = { raw_stdout: child.stdout };
 }
 
+const resolvedTarget = target || (beforePath && afterPath ? `${beforePath} -> ${afterPath}` : inputPath);
 const result = {
-  schema_version: 'webactueel-command-result/1.2',
+  schema_version: 'webactueel-command-result/1.3',
   request_id: requestId,
   status: child.status === 0 ? 'success' : 'failed',
   requested_by: request.requested_by || 'chatgpt-web',
   runtime: registry.runtime,
+  runtime_capability: registry.runtime_capability || 'designchecker-direct',
   command,
-  target: target || inputPath,
+  target: resolvedTarget,
   resolved_route: {
     controller: 'webactueel-workflow',
     domain_owner: route.owner,
@@ -115,7 +140,8 @@ const result = {
     capability: route.capability,
     target_type: route.target_type,
     write_target: false,
-    evidence_scope: route.evidence_scope || null
+    evidence_scope: route.evidence_scope || null,
+    selected_source_selectors: Array.isArray(source.selector_ids) ? source.selector_ids.filter((selector) => route.source_selectors?.includes(selector)) : []
   },
   source_context: source,
   preconditions: {

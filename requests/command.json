@@ -1,11 +1,12 @@
 {
   "enabled": true,
-  "request_id": "design-baseline-persistent-20260815-1936",
+  "request_id": "design-diff-persistent-20260815-1938",
   "requested_by": "chatgpt-web",
-  "command": "design-baseline",
-  "target": "https://example.com/",
+  "command": "design-diff",
   "owner": "design",
   "project_id": "project-design",
+  "before_path": "results/evidence/design-baseline-persistent-20260815-1936/baseline/desktop-1440x1000.png",
+  "after_path": "results/evidence/design-baseline-persistent-20260815-1936/baseline/desktop-1440x1000.png",
   "source_context": {
     "integrity_status": "verified",
     "project_id": "project-design",

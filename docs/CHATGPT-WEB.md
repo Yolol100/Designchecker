@@ -1,15 +1,26 @@
 # ChatGPT Web koppeling
 
-Deze repo bevat één MCP HTTP-server op `/mcp`.
+Deze repo bevat één MCP HTTP-server op `/mcp`. De repository alleen installeert of activeert geen ChatGPT-plugin.
 
-## Zonder nieuw leveranciersaccount
+## Vereiste keten
 
-1. Start lokaal: `npm run mcp:http`.
-2. Maak het endpoint tijdelijk via HTTPS bereikbaar.
-3. Voeg de HTTPS `/mcp` URL alleen toe op een ChatGPT-surface/plan die custom MCP ondersteunt.
+1. De code staat op `main` en CI is groen.
+2. Start of host de MCP-server.
+3. Maak `/mcp` via HTTPS bereikbaar.
+4. Voeg die HTTPS-MCP endpoint toe op een ChatGPT-surface die custom MCP ondersteunt.
+5. Controleer runtime-exposure voordat een Skill de capability als uitvoerbaar behandelt.
 
-Een lokale `localhost` URL is niet rechtstreeks bereikbaar vanuit ChatGPT Web.
+Standaard bindt de server alleen op `127.0.0.1` en accepteert hij alleen localhost-hostheaders. Voor een tunnel of remote host moet `MCP_ALLOWED_HOSTS` expliciet de publieke hostname bevatten. `MCP_ALLOWED_ORIGINS` kan optioneel verder beperken. De tool zelf vereist geen leveranciersaccount of API-key; een gekozen hosting- of tunnelmethode kan wel eigen voorwaarden hebben.
 
-## Toolbeleid
+## Routing
 
-De server publiceert alleen read-only evidence-tools. Writes naar Figma, WordPress, Elementor, Gmail, Drive of productie horen bij hun bestaande app/Skill-route en staan bewust niet in deze MCP-server.
+`webactueel-workflow` bepaalt eerst de `domain_owner`. Projectspecifiek werk leest vervolgens het geregistreerde live Drive-manifest en alleen de relevante selectorbronnen. Pas daarna wordt een tool uit `config/tool-routing.json` gekozen. De MCP-toolbeschrijvingen herhalen deze owner- en bronvoorwaarde om verkeerde automatische selectie te beperken.
+
+## Veiligheid
+
+- Doelsites worden niet gewijzigd.
+- Private/local literal targets worden standaard geblokkeerd.
+- MCP-artifactpaden blijven binnen `ARTIFACT_DIR`.
+- Writes naar Figma, WordPress, Elementor, Gmail, Drive of productie horen bij bestaande Skill/app-routes.
+- De Leads-route vereist eerst de Lead Registry en verstuurt nooit automatisch e-mail.
+- Website QA blijft eigenaar van runtime-GO/No-Go.

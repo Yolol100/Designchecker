@@ -1,13 +1,22 @@
 {
-  "schema_version": "1.0",
-  "note": "Inventory only. Installing code here does not install ChatGPT apps.",
+  "schema_version": "1.1",
+  "note": "Inventory only. Repository code does not install a ChatGPT app by itself.",
   "existing_or_optional_app_routes": [
     {"id":"figma","owner":"design","purpose":"explicit Figma reads/writes","auth_expected":true},
     {"id":"canva","owner":"design","purpose":"explicit Canva destination","auth_expected":true},
-    {"id":"github","owner":"inherit","purpose":"repository context and PR workflows","auth_expected":true},
+    {"id":"github","owner":"inherit","purpose":"repository context and workflows","auth_expected":true},
     {"id":"google-drive","owner":"inherit","purpose":"canonical project truth","auth_expected":true},
     {"id":"ahrefs","owner":"seo","purpose":"SEO metrics when available","auth_expected":true},
     {"id":"product-design","owner":"design","purpose":"Work/Codex prototype and audit routes","auth_expected":false}
   ],
-  "custom_no_key_layer": "src/mcp/server.ts"
+  "custom_mcp": {
+    "id":"webactueel-evidence",
+    "server":"src/mcp/server.ts",
+    "routing_contract":"config/tool-routing.json",
+    "auth_required":false,
+    "api_key_required":false,
+    "target_writes":false,
+    "repository_status":"ready",
+    "chatgpt_status":"not-connected-until-a-reachable-https-mcp-endpoint-is-added-on-a-supported-surface"
+  }
 }

@@ -1,7 +1,8 @@
 import { evidence } from '../core/evidence.js';
 import { withPage } from '../core/browser.js';
+import type { Owner } from '../core/types.js';
 
-export async function inspectElementor(target: string) {
+export async function inspectElementor(target: string, owner: Owner = 'elementor', toolName = 'elementor_inspect_page') {
   const data = await withPage(target, {}, async (page) => page.evaluate(() => {
     const all = [...document.querySelectorAll<HTMLElement>('[class*="elementor"], [data-element_type], [data-widget_type]')];
     const widgets = [...document.querySelectorAll<HTMLElement>('[data-widget_type]')].map((el) => el.dataset.widget_type).filter(Boolean);
@@ -19,5 +20,5 @@ export async function inspectElementor(target: string) {
       styleTags: document.querySelectorAll('style').length
     };
   }));
-  return evidence({ owner: 'elementor', tool: 'elementor_inspect_page', target, data, limits: ['Rendered DOM heuristics only; does not inspect Elementor editor data, Theme Builder conditions, Kit JSON or server-side configuration.'] });
+  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered DOM heuristics only; does not inspect Elementor editor data, Theme Builder conditions, Kit JSON or server-side configuration.'] });
 }

@@ -1,12 +1,16 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "controller": "webactueel-workflow",
+  "canonical_skill_registry": "webactueel-workflow/references/skill-registry.json",
+  "canonical_project_source_registry": "webactueel-workflow/references/project-source-registry.json",
+  "source_rule": "Skills contain reusable method; registered live Google Drive manifests contain project truth. This repository stores capability routing only.",
   "skills": [
-    {"id":"design","role":"domain-owner","project_truth":"google-drive","capabilities":["design-inspection","browser-baseline","accessibility-signals","visual-diff"]},
-    {"id":"seo","role":"domain-owner","project_truth":"google-drive","capabilities":["seo-inspection","link-check","performance-signals","html-validation"]},
-    {"id":"elementor","role":"domain-owner","project_truth":"google-drive","capabilities":["elementor-inspection","browser-baseline","accessibility-signals"]},
-    {"id":"wordpressqualityarchitect","aliases":["programmeren"],"role":"conditional-domain-owner","project_truth":"google-drive","capabilities":["technical-evidence","html-validation","performance-signals"]},
-    {"id":"leads","role":"domain-owner","project_truth":"lead-registry-and-project-sources","capabilities":["public-site-inspection","contact-signal-inspection"]},
-    {"id":"website-qa-checklist","aliases":["checklist"],"role":"independent-qa-owner","project_truth":"google-drive","capabilities":["qa-evidence-bundle","browser-baseline","accessibility-signals","performance-signals"]}
+    {"id":"webactueel-workflow","role":"controller","project_id":null,"capabilities":["mcp-server"]},
+    {"id":"design","role":"domain-owner","project_id":"project-design","project_truth":"live-google-drive-manifest","capabilities":["design-inspection","browser-baseline","accessibility-signals","visual-diff"]},
+    {"id":"seo","role":"domain-owner","project_id":"project-seo","project_truth":"live-google-drive-manifest","capabilities":["seo-inspection","link-check","performance-signals","html-validation"]},
+    {"id":"elementor","role":"domain-owner","project_id":"project-elementor","project_truth":"live-google-drive-manifest","capabilities":["elementor-inspection","browser-baseline"]},
+    {"id":"wordpressqualityarchitect","aliases":["programmeren","snippet"],"role":"conditional-domain-owner","project_id":"project-plugin","project_truth":"live-google-drive-manifest","capabilities":["technical-evidence","html-validation","performance-signals"]},
+    {"id":"leads","aliases":["lead"],"role":"domain-owner","project_id":"project-leads","project_truth":"lead-registry-first-then-live-google-drive-manifest","capabilities":["public-site-inspection","contact-signal-inspection"]},
+    {"id":"website-qa-checklist","aliases":["checklist"],"role":"independent-qa-owner","project_id":"project-checklist","project_truth":"live-google-drive-manifest","capabilities":["qa-evidence-bundle","browser-baseline","accessibility-signals","performance-signals","html-validation","link-check","visual-diff"]}
   ]
 }

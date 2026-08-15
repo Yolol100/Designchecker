@@ -1,13 +1,21 @@
 {
-  "schema_version": "1.0",
-  "policy": "read-only-evidence",
+  "schema_version": "1.1",
+  "policy": "read-only-target-evidence",
+  "owner_policy": "Capabilities never become a second domain owner. Shared engines inherit the primary route owner; consumers list the owners allowed to use that engine.",
   "capabilities": [
-    {"id":"browser-baseline","engine":"playwright","account_required":false,"api_key_required":false,"owners":["design","elementor","website-qa-checklist"]},
-    {"id":"accessibility-signals","engine":"axe-core","account_required":false,"api_key_required":false,"owners":["design","website-qa-checklist"]},
-    {"id":"performance-signals","engine":"lighthouse","account_required":false,"api_key_required":false,"owners":["design","seo","website-qa-checklist"]},
-    {"id":"visual-diff","engine":"pixelmatch+sharp","account_required":false,"api_key_required":false,"owners":["design","website-qa-checklist"]},
-    {"id":"html-validation","engine":"vnu-jar","account_required":false,"api_key_required":false,"owners":["seo","wordpressqualityarchitect","website-qa-checklist"]},
-    {"id":"link-check","engine":"native-fetch","account_required":false,"api_key_required":false,"owners":["seo","leads","website-qa-checklist"]},
-    {"id":"mcp-server","engine":"modelcontextprotocol-typescript-sdk","account_required":false,"api_key_required":false,"owners":["webactueel-workflow"]}
+    {"id":"design-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","website-qa-checklist"]},
+    {"id":"seo-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","website-qa-checklist"]},
+    {"id":"elementor-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["elementor","website-qa-checklist"]},
+    {"id":"browser-baseline","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","elementor","website-qa-checklist"]},
+    {"id":"accessibility-signals","engine":"axe-core","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","website-qa-checklist"]},
+    {"id":"performance-signals","engine":"lighthouse","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","wordpressqualityarchitect","website-qa-checklist"]},
+    {"id":"visual-diff","engine":"pixelmatch+sharp","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","website-qa-checklist"]},
+    {"id":"html-validation","engine":"vnu-jar","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","wordpressqualityarchitect","website-qa-checklist"]},
+    {"id":"link-check","engine":"native-fetch","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","website-qa-checklist"]},
+    {"id":"technical-evidence","engine":"lighthouse+vnu-jar","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["wordpressqualityarchitect"]},
+    {"id":"public-site-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
+    {"id":"contact-signal-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
+    {"id":"qa-evidence-bundle","engine":"bounded-composite","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["website-qa-checklist"]},
+    {"id":"mcp-server","engine":"modelcontextprotocol-typescript-sdk","owner_policy":"controller-support","account_required":false,"api_key_required":false,"consumers":["webactueel-workflow"]}
   ]
 }

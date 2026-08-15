@@ -1,14 +1,15 @@
 {
   "name": "webactueel-designchecker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Shared read-only web evidence tools and MCP server for Webactueel specialist skills.",
+  "description": "Shared read-only target-evidence tools and MCP server for Webactueel specialist skills.",
   "engines": { "node": ">=22.19.0" },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "node --test dist/tests/*.test.js",
+    "smoke": "node scripts/smoke.mjs",
     "dev": "tsx src/cli.ts",
     "mcp:stdio": "MCP_TRANSPORT=stdio tsx src/mcp/server.ts",
     "mcp:http": "MCP_TRANSPORT=http tsx src/mcp/server.ts",

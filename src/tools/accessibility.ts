@@ -1,8 +1,9 @@
 import axe from 'axe-core';
 import { evidence } from '../core/evidence.js';
 import { withPage } from '../core/browser.js';
+import type { Owner } from '../core/types.js';
 
-export async function scanAccessibility(target: string) {
+export async function scanAccessibility(target: string, owner: Owner = 'design', toolName = 'design_accessibility_risks') {
   const data = await withPage(target, {}, async (page) => {
     await page.addScriptTag({ content: axe.source });
     return page.evaluate(async () => {
@@ -15,5 +16,5 @@ export async function scanAccessibility(target: string) {
       };
     });
   });
-  return evidence({ owner: 'design', tool: 'design_accessibility_risks', target, data, limits: ['Automated axe-core findings cover only machine-testable rules.', 'Keyboard, screenreader, zoom, text spacing, cognitive usability and full WCAG conformance require additional manual/runtime testing.'] });
+  return evidence({ owner, tool: toolName, target, data, limits: ['Automated axe-core findings cover only machine-testable rules.', 'Keyboard, screenreader, zoom, text spacing, cognitive usability and full WCAG conformance require additional manual/runtime testing.'] });
 }

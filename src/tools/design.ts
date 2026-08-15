@@ -3,8 +3,8 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { evidence } from '../core/evidence.js';
 import { assertSafeTarget } from '../core/url.js';
-import { withPage } from '../core/browser.js';
-import type { ViewportSpec } from '../core/types.js';
+import { installNetworkGuard, withPage } from '../core/browser.js';
+import type { Owner, ViewportSpec } from '../core/types.js';
 
 const DEFAULT_VIEWPORTS: ViewportSpec[] = [
   { name: 'desktop', width: 1440, height: 1000 },
@@ -12,7 +12,7 @@ const DEFAULT_VIEWPORTS: ViewportSpec[] = [
   { name: 'mobile', width: 390, height: 844 }
 ];
 
-export async function inspectDesign(target: string) {
+export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
   const data = await withPage(target, {}, async (page) => page.evaluate(() => {
     const rootStyle = getComputedStyle(document.documentElement);
     const rootVars: Record<string, string> = {};
@@ -46,11 +46,10 @@ export async function inspectDesign(target: string) {
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1
     };
   }));
-
-  return evidence({ owner: 'design', tool: 'design_inspect_page', target, data, limits: ['Static/runtime inspection of the rendered page only.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct implementation on all states/devices.'] });
+  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered-page inspection only.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'] });
 }
 
-export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS) {
+export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS, owner: Owner = 'design', toolName = 'design_capture_baseline') {
   const url = assertSafeTarget(target);
   await mkdir(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
@@ -59,7 +58,9 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
     for (const viewport of viewports) {
       const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, reducedMotion: 'reduce' });
       const page = await context.newPage();
+      await installNetworkGuard(page);
       await page.goto(url.toString(), { waitUntil: 'networkidle', timeout: 45000 });
+      assertSafeTarget(page.url());
       const file = path.join(outputDir, `${viewport.name}-${viewport.width}x${viewport.height}.png`);
       await page.screenshot({ path: file, fullPage: true });
       const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
@@ -69,5 +70,5 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
   } finally {
     await browser.close();
   }
-  return evidence({ owner: 'design', tool: 'design_capture_baseline', target, data: { outputDir, captures }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.'] });
+  return evidence({ owner, tool: toolName, target, data: { outputDir, captures }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.'] });
 }

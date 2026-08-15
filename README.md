@@ -1,30 +1,30 @@
 # Designchecker / Webactueel Evidence Stack
 
-Centrale monorepo voor gedeelde, read-only webtools die bewijs verzamelen voor de Webactueel-specialisten. De tools nemen geen vakbeslissingen over van de Skills.
+Centrale monorepo voor gedeelde, target-read-only webtools die bewijs verzamelen voor Webactueel-specialisten. De tools nemen geen vakbeslissingen over van de Skills.
 
-## Eigenaars
+## Routing
 
-- `design` - UX/UI, IA, conversie, design systems en designbesluiten.
-- `seo` - organische SEO en zoekmachinebeleid.
-- `elementor` - Elementor-opbouw, templates en imports.
-- `wordpressqualityarchitect` - WordPress/programmeren en release-engineering wanneer die route expliciet eigenaar is.
-- `leads` - leadkwalificatie en draft-only outreachbeleid.
-- `website-qa-checklist` - onafhankelijke runtime-QA en releasebesluit.
-- `webactueel-workflow` - controller voor multi-owner workflows.
+Vaste keten: `doel -> domain_owner -> live projectbron -> taakrelevante selector -> capability -> tool -> evidence`.
 
-Projectwaarheid blijft in de geregistreerde Google Drive-projectbronnen. Deze repository bevat code, adapters, schema's, registries en tests, maar maakt geen tweede projectwaarheid.
+- `webactueel-workflow` blijft controller.
+- Design, SEO, Elementor, Programmeren/WordPress, Leads en Website QA blijven hun eigen vakowner.
+- Projectwaarheid blijft in de geregistreerde Google Drive-manifesten; deze repo kopieert die inhoud niet.
+- `config/tool-routing.json` koppelt iedere MCP-tool aan owner, project-ID, bronselector-kandidaten, trigger, uitsluitingen en evidencelevel.
+- `config/skill-registry.json` en `config/capability-registry.json` bewaken owner/capability-consistentie.
 
-## Ingebouwde gratis tooling
+Zie `docs/ROUTING.md`.
 
-Alles hieronder werkt zonder leveranciersaccount of API-key:
+## Gratis/no-key engines
 
-- Playwright - browsercapture en DOM/runtime-inspectie.
-- axe-core - automatische accessibility-risico's.
-- Lighthouse - labmetingen voor performance, accessibility, best practices en SEO.
-- Pixelmatch + Sharp - screenshotregressie.
-- Nu HTML Checker (`vnu-jar`) - HTML-validatie.
-- Eigen link checker - statuscontrole van links zonder externe dienst.
-- MCP TypeScript SDK - één toolserver voor ChatGPT/Work/Codex wanneer de surface een custom MCP-endpoint ondersteunt.
+- Playwright: browsercapture en DOM/runtime-inspectie.
+- axe-core: automatische accessibility-risico's.
+- Lighthouse: labmetingen.
+- Pixelmatch + Sharp: screenshotregressie.
+- Nu HTML Checker (`vnu-jar`): markupvalidatie.
+- Native fetch: begrensde linkcontrole.
+- MCP TypeScript SDK: één custom toolserver.
+
+Deze engines hebben zelf geen leveranciersaccount of API-key nodig.
 
 ## Installatie
 
@@ -32,9 +32,9 @@ Alles hieronder werkt zonder leveranciersaccount of API-key:
 npm install
 npm run setup:browsers
 npm run build
+npm test
+npm run smoke
 ```
-
-Node.js 22.19+ is vereist door de actuele Lighthouse-toolchain.
 
 ## CLI
 
@@ -51,26 +51,19 @@ npm run dev -- baseline https://example.com ./artifacts/example
 npm run dev -- diff ./before.png ./after.png ./artifacts/diff.png
 ```
 
-## MCP
-
-HTTP:
+## MCP / ChatGPT Web
 
 ```bash
 npm run mcp:http
 ```
 
-Stdio:
+De repository alleen maakt de tools nog niet oproepbaar in ChatGPT Web. Daarvoor moet `/mcp` als bereikbare HTTPS custom MCP-capability op een ondersteunde ChatGPT-surface worden toegevoegd en runtime-exposure slagen. Zie `docs/CHATGPT-WEB.md`.
 
-```bash
-npm run mcp:stdio
-```
-
-De MCP-tools zijn bewust read-only. Voor ChatGPT Web moet de HTTP-server bereikbaar zijn via HTTPS; zie `docs/CHATGPT-WEB.md`.
-
-## Bewijsgrens
+## Bewijsgrenzen
 
 - Automatische tools leveren signalen en reproduceerbare evidence, geen garantie.
 - axe-core bewijst geen WCAG-conformiteit.
-- Lighthouse is labdata en geen vervanging voor field data.
+- Lighthouse is labdata en geen field-CWV-bewijs.
 - Designinspectie bewijst geen usability of conversiewinst.
-- Runtime-GO blijft bij `website-qa-checklist`.
+- Leads leest alleen publieke signalen; Lead Registry en draft-only beleid blijven leidend.
+- Runtime-GO/No-Go blijft bij `website-qa-checklist`.

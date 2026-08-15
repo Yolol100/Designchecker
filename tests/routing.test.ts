@@ -35,7 +35,7 @@ test('skill, capability and MCP tool routing registries are internally consisten
   assert.ok((skillMap.get('website-qa-checklist') as any).aliases.includes('checklist'));
 });
 
-test('direct ChatGPT Web commands remain owner/source/capability bound without MCP', () => {
+test('direct ChatGPT Web commands remain Design-owner/source/capability bound without MCP', () => {
   const skills = readJson('config/skill-registry.json');
   const capabilities = readJson('config/capability-registry.json');
   const direct = readJson('config/direct-command-registry.json');
@@ -57,9 +57,7 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   assert.equal(runtimeCapability.api_key_required, false);
   assert.equal(runtimeCapability.additional_account_required, false);
   assert.equal(runtimeCapability.automatic_selection, true);
-  for (const owner of ['webactueel-workflow','design','seo','elementor','wordpressqualityarchitect','leads','website-qa-checklist']) {
-    assert.ok(runtimeCapability.consumers.includes(owner), `${owner} must be able to use Designchecker direct runtime`);
-  }
+  assert.deepEqual(runtimeCapability.consumers, ['webactueel-workflow', 'design']);
 
   const allowedBindingStatuses = new Set(['ready', 'blocked-source-integrity']);
   for (const binding of sources.bindings) {
@@ -67,6 +65,10 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
     assert.ok(binding.manifest_file_id, `Missing manifest ID for ${binding.project_id}`);
     if (binding.execution_status !== 'ready') assert.ok(binding.blocking_reason, `Blocked binding ${binding.project_id} requires a blocking reason`);
   }
+
+  assert.ok(direct.routes.length > 0);
+  assert.ok(direct.routes.every((route: any) => route.owner === 'design' && route.project_id === 'project-design'));
+  assert.deepEqual(new Set(direct.routes.map((route: any) => route.command)), new Set(['design', 'a11y', 'design-baseline', 'design-diff']));
 
   for (const route of direct.routes) {
     const skill = skillMap.get(route.owner) as any;
@@ -99,22 +101,6 @@ test('direct ChatGPT Web commands remain owner/source/capability bound without M
   assert.equal(integration.design.manifest_file_id, (bindingMap.get('project-design') as any).manifest_file_id);
   assert.equal(integration.execution.evidence_pattern, 'results/evidence/<request_id>/');
   assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
-
-  const formalLead = direct.routes.find((route: any) => route.command === 'lead-formal');
-  assert.ok(formalLead.preconditions.includes('lead_registry_preflight_verified'));
-  assert.equal(formalLead.status, 'blocked-contract');
-  assert.match(formalLead.blocked_reason, /webactueel-leadscanner-ingest\/1\.0/);
-
-  const leadsBinding = bindingMap.get('project-leads') as any;
-  assert.equal(leadsBinding.formal_scan_status, 'blocked-contract');
-  assert.match(leadsBinding.formal_scan_reason, /webactueel-leadscanner-ingest\/1\.0/);
-
-  const seoBinding = bindingMap.get('project-seo') as any;
-  assert.equal(seoBinding.execution_status, 'blocked-source-integrity');
-  assert.ok(seoBinding.rollback_folder_id);
-
-  const seoTechnical = direct.routes.find((route: any) => route.command === 'seo-technical');
-  assert.match(seoTechnical.scope_note, /does not claim full parity/i);
 });
 
 test('direct command runner enforces Design selectors and persistent baseline/diff evidence', () => {

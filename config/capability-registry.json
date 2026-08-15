@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "policy": "read-only-target-evidence",
   "owner_policy": "Capabilities never become a second domain owner. Shared engines inherit the primary route owner; consumers list the owners allowed to use that engine.",
   "capabilities": [
@@ -19,7 +19,7 @@
     {"id":"lead-formal-browser-evidence","engine":"playwright+axe-core","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
     {"id":"contact-signal-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
     {"id":"qa-evidence-bundle","engine":"bounded-composite","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["website-qa-checklist"]},
-    {"id":"designchecker-direct","engine":"chatgpt-github-app+github-actions","owner_policy":"controller-support-with-domain-owner","additional_account_required":false,"account_required":false,"api_key_required":false,"mcp_required":false,"automatic_selection":true,"purpose":"Source-bound read-only execution for controlled-runtime or deterministic evidence after owner and live project source selection.","consumers":["webactueel-workflow","design","seo","elementor","wordpressqualityarchitect","leads","website-qa-checklist"]},
+    {"id":"designchecker-direct","engine":"chatgpt-github-app+github-actions","owner_policy":"controller-support-with-design-owner","additional_account_required":false,"account_required":false,"api_key_required":false,"mcp_required":false,"automatic_selection":true,"purpose":"Source-bound read-only Design controlled-runtime evidence after the controller resolves Design ownership and the live Project Design source.","consumers":["webactueel-workflow","design"]},
     {"id":"direct-github-command","engine":"chatgpt-github-app+github-actions","owner_policy":"controller-support","additional_account_required":false,"api_key_required":false,"deprecated_by":"designchecker-direct","consumers":["webactueel-workflow"]},
     {"id":"mcp-server","engine":"modelcontextprotocol-typescript-sdk","owner_policy":"controller-support","account_required":false,"api_key_required":false,"optional":true,"consumers":["webactueel-workflow"]}
   ]

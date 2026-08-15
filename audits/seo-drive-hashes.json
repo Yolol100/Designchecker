@@ -1,0 +1,41 @@
+{
+  "schema_version": "webactueel-drive-hash-audit/1.0",
+  "request_id": "seo-source-integrity-20260815",
+  "files": [
+    {
+      "file_id": "1o-uP3iNlJhL2j2xvqEgkgFX_7fFIsnfF",
+      "name": "tool-plugin-registry.md",
+      "expected_size": 3197,
+      "actual_size": 3197,
+      "sha256": "061f9c9a77f910c396ea191c99a2769a91b0a46d31642f5894362f6f5f6ffedf"
+    },
+    {
+      "file_id": "1oFsJOdvDvNzxgRhDakZnN-9R4B3-yc8m",
+      "name": "source-index.md",
+      "expected_size": 3992,
+      "actual_size": 3992,
+      "sha256": "a0392003477e7d589ffe14a36541efd49c10031674bae01b2f5651072e2f325d"
+    },
+    {
+      "file_id": "1MLBgtTyT0JvehmEr2suyElnk3ol-Pi0B",
+      "name": "seo-tool-measurement-orchestration.md",
+      "expected_size": 16180,
+      "actual_size": 16180,
+      "sha256": "c8e0045f64aaa64d1aaaa2857f69a7009501e013d1d00f0d170ec32a6a30072c"
+    },
+    {
+      "file_id": "1NoOIhEqCPDpj18_enRIaRCZoGXorr19q",
+      "name": "PROJECT-MANIFEST.md",
+      "expected_size": 9053,
+      "actual_size": 9053,
+      "sha256": "c4c10a2afeef2f5e14be91ed18247229c50c5c0f325051eaf4dc21d5efd62732"
+    },
+    {
+      "file_id": "1uPq9-d5smGTIGZxpwS26LEqruxSoS4GT",
+      "name": "SHA256SUMS.txt",
+      "expected_size": 3518,
+      "actual_size": 3518,
+      "sha256": "076f8092203416091bcfc1aac1d431a30741b7cc5d42ec5957eb4fe334412425"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ on:
     branches: ['main']
     paths:
       - 'requests/command.json'
+      - 'requests/inputs/**'
 
 permissions:
   contents: write
@@ -22,7 +23,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.19.0'
+          node-version: '22.23.2'
       - run: npm install
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'

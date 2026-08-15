@@ -1,11 +1,13 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "policy": "read-only-target-evidence",
   "owner_policy": "Capabilities never become a second domain owner. Shared engines inherit the primary route owner; consumers list the owners allowed to use that engine.",
   "capabilities": [
     {"id":"design-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","website-qa-checklist"]},
     {"id":"seo-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","website-qa-checklist"]},
+    {"id":"seo-technical-evidence","engine":"python-stdlib-http","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo"]},
     {"id":"elementor-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["elementor","website-qa-checklist"]},
+    {"id":"elementor-json-audit","engine":"native-node-json","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["elementor"]},
     {"id":"browser-baseline","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","elementor","website-qa-checklist"]},
     {"id":"accessibility-signals","engine":"axe-core","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["design","website-qa-checklist"]},
     {"id":"performance-signals","engine":"lighthouse","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","wordpressqualityarchitect","website-qa-checklist"]},
@@ -14,8 +16,10 @@
     {"id":"link-check","engine":"native-fetch","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["seo","website-qa-checklist"]},
     {"id":"technical-evidence","engine":"lighthouse+vnu-jar","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["wordpressqualityarchitect"]},
     {"id":"public-site-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
+    {"id":"lead-formal-browser-evidence","engine":"playwright+axe-core","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
     {"id":"contact-signal-inspection","engine":"playwright","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["leads"]},
     {"id":"qa-evidence-bundle","engine":"bounded-composite","owner_policy":"inherit-primary-owner","account_required":false,"api_key_required":false,"consumers":["website-qa-checklist"]},
-    {"id":"mcp-server","engine":"modelcontextprotocol-typescript-sdk","owner_policy":"controller-support","account_required":false,"api_key_required":false,"consumers":["webactueel-workflow"]}
+    {"id":"direct-github-command","engine":"chatgpt-github-app+github-actions","owner_policy":"controller-support","additional_account_required":false,"api_key_required":false,"consumers":["webactueel-workflow"]},
+    {"id":"mcp-server","engine":"modelcontextprotocol-typescript-sdk","owner_policy":"controller-support","account_required":false,"api_key_required":false,"optional":true,"consumers":["webactueel-workflow"]}
   ]
 }

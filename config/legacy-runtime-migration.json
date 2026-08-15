@@ -1,0 +1,15 @@
+{
+  "schema_version":"1.0",
+  "status":"central-runtime-active",
+  "central_repository":"Yolol100/Designchecker",
+  "default_surface":"chatgpt-web-github-direct",
+  "mcp_required":false,
+  "migrations":[
+    {"legacy_repository":"Yolol100/seochecker","replacement_command":"seo-technical","owner":"seo","project_id":"project-seo","migration_type":"functional-centralization"},
+    {"legacy_repository":"Yolol100/Leadscanner","replacement_command":"lead-formal","owner":"leads","project_id":"project-leads","migration_type":"functional-centralization"},
+    {"legacy_repository":"Yolol100/elementorjson","replacement_command":"elementor-json","owner":"elementor","project_id":"project-elementor","migration_type":"functional-centralization"},
+    {"legacy_repository":"Yolol100/programmeren","replacement_commands":["performance","html"],"owner":"wordpressqualityarchitect","project_id":"project-plugin","migration_type":"current-skill-capability-consolidation"},
+    {"legacy_repository":"Yolol100/Checklist","replacement_commands":["qa","a11y","links","performance","html"],"owner":"website-qa-checklist","project_id":"project-checklist","migration_type":"current-skill-capability-consolidation"}
+  ],
+  "policy":"Legacy repositories are not project truth and are not required by the direct runtime. Installed Skills remain method owners; registered Drive manifests remain project truth."
+}

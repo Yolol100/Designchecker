@@ -1,16 +1,16 @@
 {
   "enabled": true,
-  "request_id": "seo-technical-smoke-20260815",
+  "request_id": "elementor-json-smoke-20260815",
   "requested_by": "chatgpt-web",
-  "command": "seo-technical",
-  "target": "https://example.com/",
-  "owner": "seo",
-  "project_id": "project-seo",
+  "command": "elementor-json",
+  "input_path": "requests/inputs/elementor-smoke.json",
+  "owner": "elementor",
+  "project_id": "project-elementor",
   "source_context": {
     "integrity_status": "verified",
-    "project_id": "project-seo",
-    "manifest_file_id": "1NoOIhEqCPDpj18_enRIaRCZoGXorr19q",
-    "source_set_version": "2.6.7-seochecker-ahrefs-routing",
-    "checked_at": "2026-08-15T16:36:30+02:00"
+    "project_id": "project-elementor",
+    "manifest_file_id": "1XdkPxfA5GpDaDfYjGfFTJJsqeCLtOjrR",
+    "source_set_version": "2026-08-07.1-continuation-source-sync",
+    "checked_at": "2026-08-15T16:38:11+02:00"
   }
 }

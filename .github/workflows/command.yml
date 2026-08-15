@@ -1,0 +1,56 @@
+name: webactueel-command
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'requests/command.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: webactueel-command-main
+  cancel-in-progress: false
+
+jobs:
+  run-command:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+      - run: npm install
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - run: npm run check
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Run requested capability
+        id: command
+        shell: bash
+        run: |
+          set +e
+          npm run command
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Commit evidence result
+        shell: bash
+        run: |
+          git config user.name "webactueel-command-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add results/
+          if git diff --cached --quiet; then
+            echo "No result file to commit"
+          else
+            request_id=$(node -p "JSON.parse(require('fs').readFileSync('requests/command.json','utf8')).request_id")
+            git commit -m "result: ${request_id}"
+            git push
+          fi
+      - name: Propagate command failure
+        if: steps.command.outputs.exit_code != '0'
+        run: exit "${{ steps.command.outputs.exit_code }}"

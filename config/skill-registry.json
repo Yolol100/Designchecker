@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "controller": "webactueel-workflow",
   "canonical_skill_registry": "webactueel-workflow/references/skill-registry.json",
   "canonical_project_source_registry": "webactueel-workflow/references/project-source-registry.json",
   "source_rule": "Skills contain reusable method; registered live Google Drive manifests contain project truth. This repository stores capability routing and read-only evidence runtime only.",
-  "default_chatgpt_web_runtime": "direct-github-command",
+  "default_chatgpt_web_runtime": "designchecker-direct",
   "skills": [
-    {"id":"webactueel-workflow","role":"controller","project_id":null,"capabilities":["direct-github-command","mcp-server"]},
+    {"id":"webactueel-workflow","role":"controller","project_id":null,"capabilities":["designchecker-direct","mcp-server"]},
     {"id":"design","role":"domain-owner","project_id":"project-design","project_truth":"live-google-drive-manifest","capabilities":["design-inspection","browser-baseline","accessibility-signals","visual-diff"]},
     {"id":"seo","role":"domain-owner","project_id":"project-seo","project_truth":"live-google-drive-manifest","capabilities":["seo-inspection","seo-technical-evidence","link-check","performance-signals","html-validation"]},
     {"id":"elementor","role":"domain-owner","project_id":"project-elementor","project_truth":"live-google-drive-manifest","capabilities":["elementor-inspection","elementor-json-audit","browser-baseline"]},

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "owner_skill": "design",
+  "project_id": "project-design",
+  "repository": "Yolol100/Designchecker",
+  "evidence_role": "controlled_runtime_design_evidence",
+  "requires_account": false,
+  "requires_api_key": false,
+  "requires_mcp": false,
+  "tools": [
+    {"id":"playwright","version":"package-lock","trigger_when":"rendered design evidence or baseline is needed","outputs":["results/"]},
+    {"id":"axe-core","version":"package-lock","trigger_when":"Design-owned accessibility risk signals are needed","outputs":["results/"]},
+    {"id":"lighthouse","version":"package-lock","trigger_when":"performance signals materially affect a Design decision","outputs":["results/"]},
+    {"id":"pixelmatch","version":"package-lock","trigger_when":"before/after visual diff is requested","outputs":["results/"]},
+    {"id":"sharp","version":"package-lock","trigger_when":"image evidence normalization is needed","outputs":["results/"]},
+    {"id":"vnu-jar","version":"package-lock","trigger_when":"markup validity is relevant to Design-controlled evidence","outputs":["results/"]}
+  ],
+  "usage_assertions": [
+    {"tool":"playwright","path":"package.json","contains":"playwright"},
+    {"tool":"axe-core","path":"package.json","contains":"axe-core"},
+    {"tool":"lighthouse","path":"package.json","contains":"lighthouse"},
+    {"tool":"pixelmatch","path":"package.json","contains":"pixelmatch"},
+    {"tool":"sharp","path":"package.json","contains":"sharp"},
+    {"tool":"vnu-jar","path":"package.json","contains":"vnu-jar"}
+  ],
+  "boundaries": [
+    "Direct routing is Design-only; SEO, Elementor, Leads, Website QA and Programmeren use their owner repositories.",
+    "MCP packages may exist as optional adapters but are never required for the direct GitHub route.",
+    "Automated accessibility signals are not a WCAG conformance claim."
+  ]
+}

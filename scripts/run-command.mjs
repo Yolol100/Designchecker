@@ -25,6 +25,14 @@ const assertRepoInputPath = (value, label) => {
   return normalized;
 };
 
+const assertRepoEvidencePath = (value, label) => {
+  const input = String(required(value, label));
+  const normalized = path.normalize(input).replaceAll('\\', '/');
+  if (!normalized.startsWith('results/evidence/') || normalized.includes('../')) throw new Error(`${label} must remain under results/evidence/.`);
+  if (!fs.existsSync(normalized) || !fs.statSync(normalized).isFile()) throw new Error(`${label} must reference an existing evidence file.`);
+  return normalized;
+};
+
 const requestId = String(required(request.request_id, 'request_id'));
 if (!/^[a-zA-Z0-9._-]{6,120}$/.test(requestId)) throw new Error('request_id contains unsupported characters.');
 const command = String(required(request.command, 'command'));
@@ -64,6 +72,10 @@ if (route.target_type === 'repo_input_pair') {
   beforePath = assertRepoInputPath(request.before_path, 'before_path');
   afterPath = assertRepoInputPath(request.after_path, 'after_path');
 }
+if (route.target_type === 'repo_evidence_pair') {
+  beforePath = assertRepoEvidencePath(request.before_path, 'before_path');
+  afterPath = assertRepoEvidencePath(request.after_path, 'after_path');
+}
 
 if (route.preconditions.includes('lead_registry_preflight_verified')) {
   if (request.lead_registry_preflight?.status !== 'verified') throw new Error('Lead Registry preflight must be verified before Leads browser execution.');
@@ -73,8 +85,8 @@ for (const field of ['lead_id', 'site_type', 'scan_policy_version']) {
   if (route.preconditions.includes(field) && !request[field]) throw new Error(`${field} is required.`);
 }
 
-const artifactRoot = path.join('results', 'artifacts', requestId);
-fs.mkdirSync(artifactRoot, { recursive: true });
+const evidenceRoot = path.join('results', 'evidence', requestId);
+fs.mkdirSync(evidenceRoot, { recursive: true });
 const startedAt = new Date().toISOString();
 let child;
 const common = {
@@ -87,10 +99,10 @@ const common = {
   }
 };
 if (route.executor.kind === 'cli' && command === 'design-baseline') {
-  const baselineDir = path.join(artifactRoot, 'baseline');
+  const baselineDir = path.join(evidenceRoot, 'baseline');
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
 } else if (route.executor.kind === 'cli' && command === 'design-diff') {
-  const diffPath = path.join(artifactRoot, 'visual-diff.png');
+  const diffPath = path.join(evidenceRoot, 'visual-diff.png');
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, beforePath, afterPath, diffPath], common);
 } else if (route.executor.kind === 'cli') {
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);

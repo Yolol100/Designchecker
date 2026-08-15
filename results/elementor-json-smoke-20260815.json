@@ -1,0 +1,61 @@
+{
+  "schema_version": "webactueel-command-result/1.1",
+  "request_id": "elementor-json-smoke-20260815",
+  "status": "success",
+  "requested_by": "chatgpt-web",
+  "runtime": "chatgpt-web-github-direct",
+  "command": "elementor-json",
+  "target": "requests/inputs/elementor-smoke.json",
+  "resolved_route": {
+    "controller": "webactueel-workflow",
+    "domain_owner": "elementor",
+    "project_id": "project-elementor",
+    "tool": "elementor_json_audit",
+    "capability": "elementor-json-audit",
+    "target_type": "repo_input_file",
+    "write_target": false,
+    "legacy_replaces": null
+  },
+  "source_context": {
+    "integrity_status": "verified",
+    "project_id": "project-elementor",
+    "manifest_file_id": "1XdkPxfA5GpDaDfYjGfFTJJsqeCLtOjrR",
+    "source_set_version": "2026-08-07.1-continuation-source-sync",
+    "checked_at": "2026-08-15T16:38:11+02:00"
+  },
+  "preconditions": {
+    "lead_registry_preflight": null
+  },
+  "started_at": "2026-08-15T14:38:11.000Z",
+  "completed_at": "2026-08-15T14:39:27.775Z",
+  "exit_code": 0,
+  "evidence": {
+    "schema_version": "webactueel-elementor-json-audit/1.0",
+    "source": "Yolol100/Designchecker:scripts/elementor-json.mjs",
+    "input": "requests/inputs/elementor-smoke.json",
+    "top_level": {
+      "type": "page",
+      "version": "0.4",
+      "title": "Smoke",
+      "has_content": true
+    },
+    "format": "container",
+    "stats": {
+      "elements": 2,
+      "containers": 1,
+      "sections": 0,
+      "columns": 0,
+      "widgets": 1,
+      "unknown": 0,
+      "widget_types": {
+        "heading": 1
+      },
+      "ids": 2
+    },
+    "findings": [],
+    "limitations": [
+      "Static JSON structure audit only; target Elementor version/add-ons/site settings still require Project Elementor preflight."
+    ]
+  },
+  "stderr": null
+}

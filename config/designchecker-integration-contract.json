@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "controller": "webactueel-workflow",
+  "runtime_capability": "designchecker-direct",
+  "purpose": "Define when, why and how ChatGPT may invoke Designchecker after Skill ownership and live project-source selection are resolved.",
+  "decision_order": [
+    "goal",
+    "domain_owner",
+    "live_project_manifest",
+    "task_source_selectors",
+    "required_evidence_level",
+    "designchecker_route",
+    "execution",
+    "result_to_domain_owner",
+    "qa_or_handoff_if_required"
+  ],
+  "global_trigger": {
+    "invoke_when_all": [
+      "a registered direct route exists for the resolved domain owner",
+      "the exact registered live Drive manifest was read and source integrity is verified",
+      "the project-source binding is executable",
+      "the task needs controlled-runtime or deterministic artifact evidence that can change the decision, risk or acceptance",
+      "the route target type and preconditions are satisfied"
+    ],
+    "do_not_invoke_when_any": [
+      "a text-only answer or source-only design decision is sufficient",
+      "an explicit Figma, Canva, Product Design or ImageGen deliverable owns the requested execution",
+      "the live project source is blocked, stale or conflicting",
+      "the selected command contract is blocked",
+      "the requested claim needs independent Website QA evidence beyond Designchecker's evidence level"
+    ],
+    "ownership_rule": "Designchecker never becomes domain owner. It returns evidence to the Skill that already owns the task."
+  },
+  "design": {
+    "owner": "design",
+    "project_id": "project-design",
+    "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
+    "routes": [
+      {
+        "command": "design",
+        "for": "rendered-page design inspection",
+        "why": "Runtime layout, hierarchy, components or overflow can materially change a Design decision.",
+        "selectors": ["ia-navigation","conversion-forms","ecommerce-checkout","system-accessibility","quality-audit","handoff","design-engineering","evidence-baseline"],
+        "max_evidence_level": "controlled_runtime"
+      },
+      {
+        "command": "a11y",
+        "for": "automated design accessibility risk signals",
+        "why": "Automated findings can change component/design acceptance criteria but do not prove WCAG conformance.",
+        "selectors": ["system-accessibility","quality-audit"],
+        "max_evidence_level": "controlled_runtime"
+      },
+      {
+        "command": "design-baseline",
+        "for": "pre-change reproducible visual baseline",
+        "why": "Redesign, cleanup, before/after, handoff and claim workflows require evidence before mutation.",
+        "selectors": ["quality-audit","handoff","design-engineering","evidence-baseline","claims-scoring"],
+        "max_evidence_level": "controlled_runtime"
+      },
+      {
+        "command": "design-diff",
+        "for": "same-scope before/after screenshot comparison",
+        "why": "Quantifies candidate visual regression or change while leaving quality judgement with Design.",
+        "selectors": ["quality-audit","evidence-baseline","claims-scoring"],
+        "max_evidence_level": "source"
+      }
+    ]
+  },
+  "execution": {
+    "request_file": "requests/command.json",
+    "result_pattern": "results/<request_id>.json",
+    "artifact_pattern": "results/artifacts/<request_id>/",
+    "workflow": ".github/workflows/command.yml",
+    "source_context_required": ["integrity_status","project_id","manifest_file_id","source_set_version","checked_at"],
+    "design_source_selector_required": true,
+    "writes_to_target": false,
+    "additional_account_required": false,
+    "api_key_required": false,
+    "mcp_required": false
+  }
+}

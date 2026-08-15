@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "controller": "webactueel-workflow",
   "runtime_capability": "designchecker-direct",
   "purpose": "Define when, why and how ChatGPT may invoke Designchecker after Skill ownership and live project-source selection are resolved.",
@@ -60,7 +60,7 @@
       {
         "command": "design-diff",
         "for": "same-scope before/after screenshot comparison",
-        "why": "Quantifies candidate visual regression or change while leaving quality judgement with Design.",
+        "why": "Quantifies candidate visual regression or change from persisted Design evidence while leaving quality judgement with Design.",
         "selectors": ["quality-audit","evidence-baseline","claims-scoring"],
         "max_evidence_level": "source"
       }
@@ -69,7 +69,8 @@
   "execution": {
     "request_file": "requests/command.json",
     "result_pattern": "results/<request_id>.json",
-    "artifact_pattern": "results/artifacts/<request_id>/",
+    "evidence_pattern": "results/evidence/<request_id>/",
+    "evidence_reuse_rule": "Cross-command screenshot inputs must be existing files under results/evidence/; arbitrary repository paths are rejected.",
     "workflow": ".github/workflows/command.yml",
     "source_context_required": ["integrity_status","project_id","manifest_file_id","source_set_version","checked_at"],
     "design_source_selector_required": true,

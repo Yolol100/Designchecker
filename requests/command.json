@@ -1,18 +1,16 @@
 {
-  "enabled": true,
-  "request_id": "design-diff-persistent-20260815-1938",
+  "enabled": false,
+  "request_id": "idle",
   "requested_by": "chatgpt-web",
-  "command": "design-diff",
+  "command": "design",
+  "target": "https://example.com/",
   "owner": "design",
   "project_id": "project-design",
-  "before_path": "results/evidence/design-baseline-persistent-20260815-1936/baseline/desktop-1440x1000.png",
-  "after_path": "results/evidence/design-baseline-persistent-20260815-1936/baseline/desktop-1440x1000.png",
   "source_context": {
-    "integrity_status": "verified",
+    "integrity_status": "not-checked",
     "project_id": "project-design",
     "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
-    "source_set_version": "2026-08-15.1-diagram-semantic-motion",
-    "checked_at": "2026-08-15T19:36:00+02:00",
-    "selector_ids": ["evidence-baseline"]
+    "source_set_version": "",
+    "checked_at": "2026-08-15T19:40:00+02:00"
   }
 }

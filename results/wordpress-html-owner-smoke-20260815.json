@@ -1,0 +1,50 @@
+{
+  "schema_version": "webactueel-command-result/1.2",
+  "request_id": "wordpress-html-owner-smoke-20260815",
+  "status": "success",
+  "requested_by": "chatgpt-web",
+  "runtime": "chatgpt-web-github-direct",
+  "command": "html",
+  "target": "https://example.com/",
+  "resolved_route": {
+    "controller": "webactueel-workflow",
+    "domain_owner": "wordpressqualityarchitect",
+    "project_id": "project-plugin",
+    "manifest_file_id": "1Gw03B2jOJ9gpMQR0l-YfS6I1EuAIji9f",
+    "tool": "wordpress_validate_html",
+    "capability": "html-validation",
+    "target_type": "public_url",
+    "write_target": false,
+    "evidence_scope": null
+  },
+  "source_context": {
+    "integrity_status": "verified",
+    "project_id": "project-plugin",
+    "manifest_file_id": "1Gw03B2jOJ9gpMQR0l-YfS6I1EuAIji9f",
+    "source_set_version": "2026-08-13.1-general-software-verification",
+    "checked_at": "2026-08-15T16:46:28+02:00"
+  },
+  "preconditions": {
+    "lead_registry_preflight": null
+  },
+  "started_at": "2026-08-15T14:48:09.743Z",
+  "completed_at": "2026-08-15T14:48:15.477Z",
+  "exit_code": 0,
+  "evidence": {
+    "schemaVersion": "1.0",
+    "owner": "wordpressqualityarchitect",
+    "tool": "wordpress_validate_html",
+    "target": "https://example.com/",
+    "evidenceLevel": "controlled_runtime",
+    "capturedAt": "2026-08-15T14:48:15.456Z",
+    "status": "partial",
+    "data": {
+      "valid": false,
+      "output": "{\"version\":\"26.8.15 (da7a3d6)\",\"messages\":[{\"type\":\"error\",\"url\":\"https://example.com/\",\"message\":\"The character encoding was not declared. Proceeding using “windows-1252”.\"}]}"
+    },
+    "limits": [
+      "Validation errors can be legitimate blockers or context-dependent warnings; specialist interpretation is required."
+    ]
+  },
+  "stderr": null
+}

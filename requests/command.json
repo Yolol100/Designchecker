@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "request_id": "design-baseline-route-20260815-1920",
+  "request_id": "design-baseline-persistent-20260815-1936",
   "requested_by": "chatgpt-web",
   "command": "design-baseline",
   "target": "https://example.com/",
@@ -11,7 +11,7 @@
     "project_id": "project-design",
     "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
     "source_set_version": "2026-08-15.1-diagram-semantic-motion",
-    "checked_at": "2026-08-15T19:18:08+02:00",
+    "checked_at": "2026-08-15T19:36:00+02:00",
     "selector_ids": ["evidence-baseline"]
   }
 }

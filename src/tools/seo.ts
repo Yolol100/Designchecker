@@ -1,6 +1,6 @@
 import { evidence } from '../core/evidence.js';
 import { withPage } from '../core/browser.js';
-import { assertSafeTarget } from '../core/url.js';
+import { assertPublicTarget } from '../core/url.js';
 import type { Owner } from '../core/types.js';
 
 export async function inspectSeo(target: string, owner: Owner = 'seo', toolName = 'seo_inspect_page') {
@@ -25,14 +25,14 @@ export async function inspectSeo(target: string, owner: Owner = 'seo', toolName 
 }
 
 async function safeRequest(input: string, method: 'HEAD' | 'GET'): Promise<Response> {
-  let current = assertSafeTarget(input);
+  let current = await assertPublicTarget(input);
   for (let redirects = 0; redirects <= 5; redirects += 1) {
     const response = await fetch(current, { method, redirect: 'manual', signal: AbortSignal.timeout(10000) });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get('location');
       if (!location) return response;
       if (redirects === 5) throw new Error('Too many redirects.');
-      current = assertSafeTarget(new URL(location, current).toString());
+      current = await assertPublicTarget(new URL(location, current).toString());
       continue;
     }
     return response;
@@ -52,5 +52,5 @@ export async function checkLinks(target: string, maxLinks = 40, owner: Owner = '
       checked.push({ url, status: null, ok: false, error: error instanceof Error ? error.message : String(error) });
     }
   }
-  return evidence({ owner, tool: toolName, target, data: { discovered: links.length, checked: checked.length, results: checked }, limits: [`Checks at most ${maxLinks} rendered links per call.`, 'Private/local literal targets and redirects are blocked; transient blocks, bot protection and rate limits can still cause false positives.'] });
+  return evidence({ owner, tool: toolName, target, data: { discovered: links.length, checked: checked.length, results: checked }, limits: [`Checks at most ${maxLinks} rendered links per call.`, 'Private/local targets and redirects, including hostnames that resolve to blocked address ranges, are rejected; transient blocks, bot protection and rate limits can still cause false positives.'] });
 }

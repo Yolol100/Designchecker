@@ -52,6 +52,7 @@ for (const field of ['lead_id', 'site_type', 'scan_policy_version']) {
   if (route.preconditions.includes(field) && !request[field]) throw new Error(`${field} is required.`);
 }
 
+const startedAt = new Date().toISOString();
 let child;
 const common = { encoding: 'utf8', maxBuffer: 30 * 1024 * 1024, env: { ...process.env } };
 if (route.executor.kind === 'cli') {
@@ -105,7 +106,7 @@ const result = {
   preconditions: {
     lead_registry_preflight: request.lead_registry_preflight || null
   },
-  started_at: new Date(checkedAt).toISOString(),
+  started_at: startedAt,
   completed_at: new Date().toISOString(),
   exit_code: child.status,
   evidence,

@@ -12,12 +12,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.19.0'
+          node-version: '22.23.2'
       - run: npm install
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       - run: npm run check
       - run: npm run build
       - run: npm test
+      - name: Validate direct command scripts
+        run: |
+          node --check scripts/run-command.mjs
+          node --check scripts/lead-formal.mjs
+          node --check scripts/elementor-json.mjs
+          python3 -m py_compile scripts/seo-technical.py
       - run: npx playwright install --with-deps chromium
       - run: npm run smoke

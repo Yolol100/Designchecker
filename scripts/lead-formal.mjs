@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { chromium, devices } from 'playwright';
 import axe from 'axe-core';
-import { assertSafeTarget } from '../dist/src/core/url.js';
+import { assertPublicTarget } from '../dist/src/core/url.js';
 
 const requestId = process.env.WEBACTUEEL_REQUEST_ID;
 const target = process.env.TARGET_URL;
@@ -13,7 +13,7 @@ const siteType = process.env.SITE_TYPE;
 const scanPolicyVersion = process.env.SCAN_POLICY_VERSION;
 if (!requestId || !target || !leadId || !siteType || !scanPolicyVersion) throw new Error('lead-formal environment is incomplete.');
 if (!['website','webshop','boekingssite'].includes(siteType)) throw new Error('SITE_TYPE must be website, webshop or boekingssite.');
-assertSafeTarget(target);
+await assertPublicTarget(target);
 
 const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const outDir = path.join('results', 'assets', requestId);
@@ -52,16 +52,28 @@ function priorityLinks(links, origin) {
 }
 
 async function guard(page) {
+  const checkedHosts = new Map();
   await page.route('**/*', async (route) => {
     const method = route.request().method().toUpperCase();
     if (!['GET','HEAD'].includes(method)) return route.abort('blockedbyclient');
-    try { assertSafeTarget(route.request().url()); await route.continue(); }
-    catch { await route.abort('blockedbyclient'); }
+    try {
+      const parsed = new URL(route.request().url());
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        const key = `${parsed.protocol}//${parsed.host}`;
+        let check = checkedHosts.get(key);
+        if (!check) {
+          check = assertPublicTarget(route.request().url()).then(() => undefined);
+          checkedHosts.set(key, check);
+        }
+        await check;
+      }
+      await route.continue();
+    } catch { await route.abort('blockedbyclient'); }
   });
 }
 
 async function inspect(page, profile, role) {
-  assertSafeTarget(page.url());
+  await assertPublicTarget(page.url());
   const state = await page.evaluate(() => {
     const visible = (el) => { const s=getComputedStyle(el); const r=el.getBoundingClientRect(); return s.display!=='none' && s.visibility!=='hidden' && r.width>0 && r.height>0; };
     const text=(document.body?.innerText||'').replace(/\s+/g,' ').trim();
@@ -109,7 +121,7 @@ try {
     const links = await inspect(page, profile.name, 'home');
     if (profile.name === 'desktop') routePlan = [{href:page.url(),role:'home'}, ...priorityLinks(links, new URL(page.url()).origin).map((x,i)=>({href:x.href,role:`priority_${i+1}`}))];
     for (const item of routePlan.slice(1,3)) {
-      try { await page.goto(item.href,{waitUntil:'domcontentloaded',timeout:30000}); await inspect(page,profile.name,item.role); }
+      try { await assertPublicTarget(item.href); await page.goto(item.href,{waitUntil:'domcontentloaded',timeout:30000}); await inspect(page,profile.name,item.role); }
       catch (error) { findings.push({severity:4,type:'priority_page_unreachable',url:item.href,profile:profile.name,role:item.role,detail:String(error).slice(0,240)}); }
     }
     await context.close();

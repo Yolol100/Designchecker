@@ -8,17 +8,34 @@ on:
       - 'toolkit-contract.json'
       - 'config/direct-command-registry.json'
       - 'package.json'
+      - 'package-lock.json'
       - 'src/**'
       - 'scripts/**'
+      - '.github/workflows/command.yml'
+      - '.github/workflows/toolkit-contract.yml'
 
 permissions:
   contents: read
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.19.0'
+          cache: npm
+      - name: Install locked dependencies
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate build and tests
+        run: |
+          npm run check
+          npm run build
+          npm test
       - name: Validate registered toolkit is accountless and wired
         run: |
           python3 - <<'PY'

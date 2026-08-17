@@ -74,6 +74,8 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
 
   assert.ok(direct.routes.length > 0);
   assert.ok(direct.routes.every((route: any) => route.owner === 'design' && route.project_id === 'project-design'));
+  assert.ok(direct.routes.every((route: any) => route.executor?.kind === 'cli'));
+  assert.ok(direct.routes.every((route: any) => ['public_url', 'repo_evidence_pair'].includes(route.target_type)));
   assert.deepEqual(new Set(direct.routes.map((route: any) => route.command)), new Set(['design', 'a11y', 'design-baseline', 'design-diff']));
 
   for (const route of direct.routes) {
@@ -109,10 +111,13 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
 });
 
-test('direct command runner enforces Design selectors and persistent baseline/diff evidence', () => {
+test('direct command runner enforces Design selectors, evidence paths and Design-only executors', () => {
   const runner = readFileSync(path.join(process.cwd(), 'scripts/run-command.mjs'), 'utf8');
   assert.match(runner, /source_context\.selector_ids is required/);
   assert.match(runner, /No selected source selector is valid/);
+  assert.match(runner, /Designchecker direct runtime refuses non-Design owner/);
+  assert.match(runner, /only permits Design CLI executors/);
+  assert.match(runner, /refuses target_type/);
   assert.match(runner, /command === 'design-baseline'/);
   assert.match(runner, /command === 'design-diff'/);
   assert.match(runner, /results', 'evidence', requestId/);
@@ -120,4 +125,8 @@ test('direct command runner enforces Design selectors and persistent baseline/di
   assert.match(runner, /must reference an existing evidence file/);
   assert.match(runner, /before_path/);
   assert.match(runner, /after_path/);
+  assert.doesNotMatch(runner, /lead-formal/);
+  assert.doesNotMatch(runner, /lead_registry_preflight/);
+  assert.doesNotMatch(runner, /executor\.kind === 'python'/);
+  assert.doesNotMatch(runner, /executor\.kind === 'node'/);
 });

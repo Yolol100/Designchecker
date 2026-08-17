@@ -4,7 +4,7 @@ import { withPage } from '../core/browser.js';
 import type { Owner } from '../core/types.js';
 
 export async function scanAccessibility(target: string, owner: Owner = 'design', toolName = 'design_accessibility_risks') {
-  const data = await withPage(target, {}, async (page) => {
+  const data = await withPage(target, { bypassCSP: true }, async (page) => {
     await page.addScriptTag({ content: axe.source });
     return page.evaluate(async () => {
       const result = await (window as unknown as { axe: { run: () => Promise<any> } }).axe.run();
@@ -16,5 +16,5 @@ export async function scanAccessibility(target: string, owner: Owner = 'design',
       };
     });
   });
-  return evidence({ owner, tool: toolName, target, data, limits: ['Automated axe-core findings cover only machine-testable rules.', 'Keyboard, screenreader, zoom, text spacing, cognitive usability and full WCAG conformance require additional manual/runtime testing.'] });
+  return evidence({ owner, tool: toolName, target, data, limits: ['Automated axe-core findings cover only machine-testable rules.', 'CSP is bypassed only inside the isolated accessibility browser context so axe can be injected; ordinary design/browser evidence keeps the target CSP intact.', 'Keyboard, screenreader, zoom, text spacing, cognitive usability and full WCAG conformance require additional manual/runtime testing.'] });
 }

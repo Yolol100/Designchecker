@@ -23,14 +23,19 @@ export async function installNetworkGuard(page: Page): Promise<void> {
   });
 }
 
-export async function withPage<T>(target: string, options: { width?: number; height?: number } = {}, run: (page: Page) => Promise<T>): Promise<T> {
+export async function withPage<T>(
+  target: string,
+  options: { width?: number; height?: number; bypassCSP?: boolean } = {},
+  run: (page: Page) => Promise<T>
+): Promise<T> {
   const url = await assertPublicTarget(target);
   let browser: Browser | undefined;
   try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       viewport: { width: options.width ?? 1440, height: options.height ?? 1000 },
-      reducedMotion: 'reduce'
+      reducedMotion: 'reduce',
+      bypassCSP: options.bypassCSP ?? false
     });
     const page = await context.newPage();
     await installNetworkGuard(page);

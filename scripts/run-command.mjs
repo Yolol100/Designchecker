@@ -18,13 +18,6 @@ const required = (value, label) => {
   return value;
 };
 
-const assertRepoInputPath = (value, label) => {
-  const input = String(required(value, label));
-  const normalized = path.normalize(input).replaceAll('\\', '/');
-  if (!normalized.startsWith('requests/inputs/') || normalized.includes('../')) throw new Error(`${label} must remain under requests/inputs/.`);
-  return normalized;
-};
-
 const assertRepoEvidencePath = (value, label) => {
   const input = String(required(value, label));
   const normalized = path.normalize(input).replaceAll('\\', '/');
@@ -41,6 +34,9 @@ const source = required(request.source_context, 'source_context');
 const route = registry.routes.find((item) => item.command === command && item.owner === owner);
 if (!route) throw new Error(`No direct command route for ${command} owned by ${owner}.`);
 if (route.status && route.status !== 'ready') throw new Error(route.blocked_reason || `Command route ${command}/${owner} is ${route.status}.`);
+if (route.owner !== 'design') throw new Error(`Designchecker direct runtime refuses non-Design owner: ${route.owner}.`);
+if (route.executor?.kind !== 'cli') throw new Error(`Designchecker direct runtime only permits Design CLI executors, got: ${route.executor?.kind || 'missing'}.`);
+if (!['public_url', 'repo_evidence_pair'].includes(route.target_type)) throw new Error(`Designchecker direct runtime refuses target_type: ${route.target_type}.`);
 
 const binding = sourceBindings.bindings.find((item) => item.project_id === route.project_id);
 if (!binding) throw new Error(`No registered project-source binding for ${route.project_id}.`);
@@ -63,26 +59,12 @@ if (route.preconditions.includes('selected_source_selector')) {
 }
 
 const target = request.target ? String(request.target) : null;
-let inputPath = null;
 let beforePath = null;
 let afterPath = null;
 if (route.target_type === 'public_url' && !target) throw new Error('target is required for this command.');
-if (route.target_type === 'repo_input_file') inputPath = assertRepoInputPath(request.input_path, 'input_path');
-if (route.target_type === 'repo_input_pair') {
-  beforePath = assertRepoInputPath(request.before_path, 'before_path');
-  afterPath = assertRepoInputPath(request.after_path, 'after_path');
-}
 if (route.target_type === 'repo_evidence_pair') {
   beforePath = assertRepoEvidencePath(request.before_path, 'before_path');
   afterPath = assertRepoEvidencePath(request.after_path, 'after_path');
-}
-
-if (route.preconditions.includes('lead_registry_preflight_verified')) {
-  if (request.lead_registry_preflight?.status !== 'verified') throw new Error('Lead Registry preflight must be verified before Leads browser execution.');
-  if (!request.lead_registry_preflight?.checked_at) throw new Error('lead_registry_preflight.checked_at is required.');
-}
-for (const field of ['lead_id', 'site_type', 'scan_policy_version']) {
-  if (route.preconditions.includes(field) && !request[field]) throw new Error(`${field} is required.`);
 }
 
 const evidenceRoot = path.join('results', 'evidence', requestId);
@@ -98,32 +80,15 @@ const common = {
     WEBACTUEEL_EVIDENCE_TOOL: route.tool
   }
 };
-if (route.executor.kind === 'cli' && command === 'design-baseline') {
+
+if (command === 'design-baseline') {
   const baselineDir = path.join(evidenceRoot, 'baseline');
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
-} else if (route.executor.kind === 'cli' && command === 'design-diff') {
+} else if (command === 'design-diff') {
   const diffPath = path.join(evidenceRoot, 'visual-diff.png');
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, beforePath, afterPath, diffPath], common);
-} else if (route.executor.kind === 'cli') {
-  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);
-} else if (route.executor.kind === 'python') {
-  child = spawnSync('python3', [route.executor.path, target], common);
-} else if (route.executor.kind === 'node' && command === 'lead-formal') {
-  child = spawnSync(process.execPath, [route.executor.path], {
-    ...common,
-    env: {
-      ...common.env,
-      WEBACTUEEL_REQUEST_ID: requestId,
-      TARGET_URL: target,
-      LEAD_ID: String(request.lead_id),
-      SITE_TYPE: String(request.site_type),
-      SCAN_POLICY_VERSION: String(request.scan_policy_version)
-    }
-  });
-} else if (route.executor.kind === 'node') {
-  child = spawnSync(process.execPath, [route.executor.path, inputPath], common);
 } else {
-  throw new Error(`Unsupported executor kind: ${route.executor.kind}`);
+  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);
 }
 
 let evidence = null;
@@ -133,7 +98,7 @@ try {
   evidence = { raw_stdout: child.stdout };
 }
 
-const resolvedTarget = target || (beforePath && afterPath ? `${beforePath} -> ${afterPath}` : inputPath);
+const resolvedTarget = target || `${beforePath} -> ${afterPath}`;
 const result = {
   schema_version: 'webactueel-command-result/1.3',
   request_id: requestId,
@@ -156,9 +121,7 @@ const result = {
     selected_source_selectors: Array.isArray(source.selector_ids) ? source.selector_ids.filter((selector) => route.source_selectors?.includes(selector)) : []
   },
   source_context: source,
-  preconditions: {
-    lead_registry_preflight: request.lead_registry_preflight || null
-  },
+  preconditions: {},
   started_at: startedAt,
   completed_at: new Date().toISOString(),
   exit_code: child.status,

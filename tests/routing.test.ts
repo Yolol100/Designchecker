@@ -5,18 +5,21 @@ import path from 'node:path';
 
 const readJson = (file: string) => JSON.parse(readFileSync(path.join(process.cwd(), file), 'utf8')) as any;
 
-test('skill, capability and MCP tool routing registries are internally consistent', () => {
+test('skill, capability and repository-native tool routing registries are internally consistent', () => {
   const skills = readJson('config/skill-registry.json');
   const capabilities = readJson('config/capability-registry.json');
   const routing = readJson('config/tool-routing.json');
-  const serverSource = readFileSync(path.join(process.cwd(), 'src/mcp/server.ts'), 'utf8');
   const skillMap = new Map(skills.skills.map((item: any) => [item.id, item]));
   const capabilityMap = new Map(capabilities.capabilities.map((item: any) => [item.id, item]));
-  for (const skill of skills.skills) for (const capabilityId of skill.capabilities) {
-    const capability = capabilityMap.get(capabilityId) as any;
-    assert.ok(capability, `Unknown capability ${capabilityId} on ${skill.id}`);
-    assert.ok(capability.consumers.includes(skill.id), `${skill.id} is not a consumer of ${capabilityId}`);
+
+  for (const skill of skills.skills) {
+    for (const capabilityId of skill.capabilities) {
+      const capability = capabilityMap.get(capabilityId) as any;
+      assert.ok(capability, `Unknown capability ${capabilityId} on ${skill.id}`);
+      assert.ok(capability.consumers.includes(skill.id), `${skill.id} is not a consumer of ${capabilityId}`);
+    }
   }
+
   for (const route of routing.routes) {
     const skill = skillMap.get(route.domain_owner) as any;
     const capability = capabilityMap.get(route.capability) as any;
@@ -26,8 +29,11 @@ test('skill, capability and MCP tool routing registries are internally consisten
     assert.ok(capability.consumers.includes(route.domain_owner), `Capability ${route.capability} cannot be used by ${route.domain_owner}`);
     assert.equal(route.write_target, false, `${route.tool} must remain target-read-only`);
     assert.ok(route.selector_candidates.length > 0, `${route.tool} must declare source selector candidates`);
-    assert.ok(serverSource.includes(`registerTool('${route.tool}'`), `${route.tool} is not registered by optional MCP server`);
+    assert.ok(route.trigger_when?.length > 0, `${route.tool} must declare when it should run`);
+    assert.ok(route.do_not_trigger_when?.length > 0, `${route.tool} must declare when it should not run`);
+    assert.ok(route.evidence_level, `${route.tool} must declare an evidence level`);
   }
+
   const wp = skillMap.get('wordpressqualityarchitect') as any;
   assert.ok(wp.aliases.includes('programmeren'));
   assert.ok(wp.aliases.includes('snippet'));

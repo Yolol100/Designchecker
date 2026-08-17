@@ -12,8 +12,6 @@
     "smoke": "node scripts/smoke.mjs",
     "command": "node scripts/run-command.mjs",
     "dev": "tsx src/cli.ts",
-    "mcp:stdio": "MCP_TRANSPORT=stdio tsx src/mcp/server.ts",
-    "mcp:http": "MCP_TRANSPORT=http tsx src/mcp/server.ts",
     "setup:browsers": "playwright install chromium"
   },
   "dependencies": {

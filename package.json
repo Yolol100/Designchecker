@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Central evidence and command runner for Webactueel specialist skills.",
-  "engines": { "node": ">=22.19.0" },
+  "engines": {
+    "node": ">=22.19.0"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
@@ -15,8 +17,6 @@
     "setup:browsers": "playwright install chromium"
   },
   "dependencies": {
-    "@modelcontextprotocol/node": "^2.0.0",
-    "@modelcontextprotocol/server": "^2.0.0",
     "axe-core": "^4.12.1",
     "chrome-launcher": "^1.2.1",
     "lighthouse": "^13.4.1",

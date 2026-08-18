@@ -1,6 +1,9 @@
 node_modules/
 dist/
 artifacts/
+results/
+requests/command.json
+requests/inputs/
 .playwright/
 .env
 .env.*

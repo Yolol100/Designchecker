@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { evidence } from '../core/evidence.js';
+import { STABLE_SCREENSHOT_OPTIONS, SCREENSHOT_STABILITY_NOTE } from '../core/screenshot.js';
 import { assertSafeTarget } from '../core/url.js';
 import { installNetworkGuard, withPage } from '../core/browser.js';
 import type { Owner, ViewportSpec } from '../core/types.js';
@@ -62,7 +63,7 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
       await page.goto(url.toString(), { waitUntil: 'networkidle', timeout: 45000 });
       assertSafeTarget(page.url());
       const file = path.join(outputDir, `${viewport.name}-${viewport.width}x${viewport.height}.png`);
-      await page.screenshot({ path: file, fullPage: true });
+      await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
       const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
       captures.push({ viewport, file, state });
       await context.close();
@@ -70,5 +71,5 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
   } finally {
     await browser.close();
   }
-  return evidence({ owner, tool: toolName, target, data: { outputDir, captures }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.'] });
+  return evidence({ owner, tool: toolName, target, data: { outputDir, captures, screenshotStability: STABLE_SCREENSHOT_OPTIONS }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.', SCREENSHOT_STABILITY_NOTE] });
 }

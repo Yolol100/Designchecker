@@ -1,63 +1,27 @@
-# Designchecker / Webactueel Evidence Stack
+# Designchecker — Automated Website QA & Visual Regression
 
-> **Portfoliostatus:** Flagship · actieve evidence-tool · read-only websiteanalyse
+> **Portfolio flagship · read-only website analysis · TypeScript / Playwright**
 
-## In één oogopslag
+Designchecker turns manual website QA into a repeatable evidence workflow. It captures browser behaviour, accessibility signals, performance measurements, markup validation and visual-regression results without making changes to the target website.
 
-Designchecker levert reproduceerbare browser-, accessibility-, performance-, markup- en visual-regressionevidence. De owning vakskill blijft verantwoordelijk voor interpretatie en het uiteindelijke Go/No-Go-besluit.
+**Built by:** [Andrew Baeten](https://github.com/Yolol100) · [Portfolio](https://andrewbaeten.nl)  
+**Useful for:** WordPress teams, web agencies, QA workflows and developers who need reproducible website-quality evidence.
 
-| Onderdeel | Bewijs |
+## Why this project matters
+
+A website can look correct during a quick manual check while still containing browser, accessibility, performance or visual-regression problems. Designchecker combines several independent checks into one inspectable workflow so issues can be found consistently before release.
+
+| Area | What it demonstrates |
 | --- | --- |
-| Doelgroep | Webactueel design-, development- en QA-workflows |
-| Stack | TypeScript, Playwright, axe-core, Lighthouse, Pixelmatch, Sharp en Nu HTML Checker |
-| Kwaliteit | CI, contracttests, fixtures en begrensde smokechecks |
-| Veiligheid | Read-only uitvoering en tijdelijke run-scoped input/output |
-| Resultaat | GitHub Actions-artifacts die teruggaan naar de owning specialist |
+| Browser QA | Playwright-based browser capture and runtime inspection |
+| Accessibility | axe-core automated accessibility risk signals |
+| Performance | Lighthouse lab measurements |
+| Visual regression | Pixelmatch + Sharp screenshot comparison |
+| Markup quality | Nu HTML Checker validation |
+| Engineering quality | TypeScript, CI, contract tests, fixtures and bounded smoke checks |
+| Safety | Read-only execution and temporary run-scoped input/output |
 
-## Snel starten
-
-1. Installeer dependencies met `npm install`.
-2. Installeer browsers met `npm run setup:browsers`.
-3. Voer `npm run build && npm test && npm run smoke` uit.
-4. Gebruik voor echte opdrachten de geregistreerde requestworkflow en beoordeel het artifact binnen de owning vakskill.
-
-## Architectuur
-
-```text
-owning specialist → begrensd request → Designchecker engines
-                                      ↓
-                              run-scoped evidence
-                                      ↓
-                         owning specialist → besluit
-```
-
-Generieke read-only uitvoer- en bewijslaag voor Webactueel-specialisten. De vakskills blijven inhoudelijk eigenaar en de geregistreerde Google Drive-bronnen blijven projectwaarheid.
-
-## Standaardroute
-
-`vraag -> webactueel-workflow -> domain owner -> live Drive-bron -> bewijsbehoefte -> Designchecker -> GitHub Actions -> run-scoped artifact -> owning Skill`
-
-Designchecker is uitsluitend een execution/evidence capability. Hij wordt nooit een tweede vakowner en bepaalt geen zelfstandig Go/No-Go.
-
-## Repository hygiene
-
-De default branch bevat alleen generieke capability, contracten, validators, fixtures en regressietests.
-
-- Concrete `requests/command.json`-state bestaat alleen tijdelijk op een `runtime/**`-branch.
-- Request-inputs voor een concrete opdracht blijven op die tijdelijke branch of in run-artifacts.
-- `results/` is runtime-output, staat in `.gitignore` en wordt uitsluitend als GitHub Actions-artifact gepubliceerd.
-- Screenshots, dated runs, targetdata en project-/run-specifieke evidence worden niet naar `main` gecommit.
-
-## Engines
-
-- Playwright voor browsercapture en DOM/runtime-inspectie.
-- axe-core voor automatische accessibility-risicosignalen.
-- Lighthouse voor labmetingen.
-- Pixelmatch + Sharp voor screenshotregressie.
-- Nu HTML Checker voor markupvalidatie.
-- Native fetch/Python/Node voor begrensde technische inspectie.
-
-## Lokale ontwikkeling
+## Quick technical review
 
 ```bash
 npm install
@@ -67,16 +31,50 @@ npm test
 npm run smoke
 ```
 
-Lokale installatie is alleen voor ontwikkeling; remote evidence draait via GitHub Actions.
+The default branch contains reusable capability, validators, fixtures and regression tests. Project-specific targets, screenshots and run evidence stay temporary and are not committed to `main`.
 
-## Bewijsgrenzen
+## Architecture
 
-Automatische tools leveren signalen en reproduceerbare evidence, geen garantie. axe-core bewijst geen volledige WCAG-conformiteit; Lighthouse is labdata; visual diff beoordeelt geen wenselijkheid; runtime-GO/No-Go blijft bij `website-qa-checklist`.
+```text
+request → Designchecker engines
+             ↓
+      run-scoped evidence
+             ↓
+      review / QA decision
+```
 
-## Projectstatus, roadmap en support
+In the wider Webactueel workflow, specialist logic remains outside this repository. Designchecker is the execution/evidence layer rather than the final decision-maker.
 
-Designchecker is actief als generieke uitvoer- en bewijslaag. Nieuwe engines mogen geen tweede vakowner of automatische productiegoedkeuring introduceren. Meld reproduceerbare defecten via [GitHub Issues](https://github.com/Yolol100/Designchecker/issues) zonder klanttargets of run-evidence te publiceren.
+## Repository hygiene
 
-## Licentie
+- Concrete `requests/command.json` state exists only temporarily on a `runtime/**` branch.
+- Request inputs for a concrete assignment remain on that temporary branch or in run artifacts.
+- `results/` is runtime output, is ignored by Git and is published only as a GitHub Actions artifact.
+- Screenshots, dated runs, target data and project-specific evidence are not committed to `main`.
 
-Deze repository bevat momenteel geen open-sourcelicentie. Hergebruik, distributie of afgeleide werken zijn niet toegestaan zonder expliciete toestemming van de rechthebbende.
+## Engines
+
+- **Playwright** — browser capture and DOM/runtime inspection.
+- **axe-core** — automated accessibility risk signals.
+- **Lighthouse** — performance and quality lab measurements.
+- **Pixelmatch + Sharp** — screenshot and visual-regression comparison.
+- **Nu HTML Checker** — markup validation.
+- **Native fetch / Python / Node** — bounded technical inspection where appropriate.
+
+## Evidence boundaries
+
+Automated tools provide signals and reproducible evidence, not guarantees. axe-core does not prove complete WCAG conformance, Lighthouse is lab data, and a visual diff cannot decide whether a design change is desirable. Final release decisions still require human and context-aware review.
+
+## Project status and support
+
+Designchecker is actively developed as a reusable QA evidence layer. Report reproducible technical defects through [GitHub Issues](https://github.com/Yolol100/Designchecker/issues) without publishing client targets or private run evidence.
+
+## About the developer
+
+I am **Andrew Baeten**, a Senior WordPress Developer & Web Designer with 10+ years of experience across 70+ WordPress projects. I work across WordPress, WooCommerce, Elementor, ACF, UX, performance, accessibility and automated QA.
+
+[Portfolio](https://andrewbaeten.nl) · [LinkedIn](https://www.linkedin.com/in/andrew-baeten-305a1478/) · [Email](mailto:info@andrewbaeten.nl)
+
+## License
+
+This repository currently has no open-source license. Reuse, distribution or derivative works are not permitted without explicit permission from the copyright holder.

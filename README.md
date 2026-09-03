@@ -45,6 +45,16 @@ request → Designchecker engines
 
 In the wider Webactueel workflow, specialist logic remains outside this repository. Designchecker is the execution/evidence layer rather than the final decision-maker.
 
+## Internal integration contract
+
+The registered Webactueel route remains:
+
+```text
+request → webactueel-workflow → domain owner → live Drive source → evidence need → Designchecker → GitHub Actions → run-scoped artifact → owning skill
+```
+
+Designchecker is only an execution/evidence capability. It does not become a second domain owner and does not independently issue the final Go/No-Go decision.
+
 ## Repository hygiene
 
 - Concrete `requests/command.json` state exists only temporarily on a `runtime/**` branch.

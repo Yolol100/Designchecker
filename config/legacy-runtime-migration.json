@@ -1,15 +1,55 @@
 {
-  "schema_version":"1.2",
-  "status":"central-runtime-active-with-explicit-source-and-contract-blockers",
-  "central_repository":"Yolol100/Designchecker",
-  "default_surface":"chatgpt-web-github-direct",
-  "mcp_required":false,
-  "migrations":[
-    {"legacy_repository":"Yolol100/seochecker","replacement_command":"seo-technical","owner":"seo","project_id":"project-seo","runtime_status":"validated-bounded","execution_status":"blocked-source-integrity","reason":"The direct Designchecker runtime is proven, but Project SEO canonical manifest/checksum drift must be repaired before the new route becomes canonical. seo-technical is bounded evidence and is not claimed as full legacy stack parity."},
-    {"legacy_repository":"Yolol100/Leadscanner","replacement_command":null,"owner":"leads","project_id":"project-leads","runtime_status":"not-formally-replaced","reason":"Project Leads 10.5.0 requires webactueel-leadscanner-ingest/1.0 provenance and artifact readback. Keep formal qualification on the contract-compliant path until Designchecker implements and passes that exact contract."},
-    {"legacy_repository":"Yolol100/elementorjson","replacement_command":"elementor-json","owner":"elementor","project_id":"project-elementor","runtime_status":"validated"},
-    {"legacy_repository":"Yolol100/programmeren","replacement_commands":["performance","html"],"owner":"wordpressqualityarchitect","project_id":"project-plugin","runtime_status":"central-evidence-capabilities-active","note":"wordpressqualityarchitect remains code/audit/release owner; Designchecker supplies bounded technical evidence only."},
-    {"legacy_repository":"Yolol100/Checklist","replacement_commands":["qa","a11y","links","performance","html"],"owner":"website-qa-checklist","project_id":"project-checklist","runtime_status":"central-evidence-capabilities-active","note":"Website QA remains independent acceptance owner; Designchecker supplies evidence only."}
+  "schema_version": "1.3",
+  "status": "shared-browser-evidence-active-with-checklist-consolidation-gated",
+  "central_repository": "Yolol100/Designchecker",
+  "default_surface": "chatgpt-web-github-direct",
+  "mcp_required": false,
+  "migrations": [
+    {
+      "legacy_repository": "Yolol100/seochecker",
+      "replacement_command": "seo-technical",
+      "owner": "seo",
+      "project_id": "project-seo",
+      "runtime_status": "bounded-page-observation-only",
+      "execution_status": "not-a-replacement",
+      "reason": "Designchecker may supply bounded page, link, HTML or lab signals. Yolol100/seochecker remains the active core runtime for crawl, Lighthouse, Nu HTML and technical SEO regression evidence."
+    },
+    {
+      "legacy_repository": "Yolol100/Leadscanner",
+      "replacement_command": null,
+      "owner": "leads",
+      "project_id": "project-leads",
+      "runtime_status": "excluded-no-change",
+      "execution_status": "not-formally-replaced",
+      "reason": "Leadscanner is explicitly outside this simplification. No Designchecker route may replace its registered provenance or operational contract."
+    },
+    {
+      "legacy_repository": "Yolol100/elementorjson",
+      "replacement_command": "elementor-json",
+      "owner": "elementor",
+      "project_id": "project-elementor",
+      "runtime_status": "source-lint-only",
+      "execution_status": "not-a-replacement",
+      "reason": "Designchecker may inspect source JSON or public rendering signals. Yolol100/elementorjson remains the active core runtime for importer roundtrip, pinned Elementor, native Kit and controlled browser evidence."
+    },
+    {
+      "legacy_repository": "Yolol100/programmeren",
+      "replacement_commands": ["performance", "html"],
+      "owner": "wordpressqualityarchitect",
+      "project_id": "project-plugin",
+      "runtime_status": "bounded-browser-signals-only",
+      "execution_status": "not-a-replacement",
+      "reason": "Designchecker may supply public browser, Lighthouse or markup signals. Yolol100/programmeren remains the active core audit harness for WordPress code, dependencies, Plugin Check and controlled runtime evidence."
+    },
+    {
+      "legacy_repository": "Yolol100/Checklist",
+      "replacement_commands": ["qa", "a11y", "links", "performance", "html"],
+      "owner": "website-qa-checklist",
+      "project_id": "project-checklist",
+      "runtime_status": "migration-evidence-parity-pending",
+      "execution_status": "legacy-active-until-formal-evidence-parity",
+      "reason": "This is the only repository consolidation in Designchecker. Checklist remains active until raw evidence, formal Evidence Manifest finalization, request/run correlation, privacy guards and Website QA acceptance are proven equivalent."
+    }
   ],
-  "policy":"Legacy repositories are not project truth. Installed Skills remain method owners; registered Drive manifests remain project truth. A runtime may be technically healthy while a project route remains blocked by source integrity or a specialist provenance contract."
+  "policy": "Designchecker is shared read-only browser evidence, not a universal specialist runtime. Installed Skills remain method owners; registered Drive manifests remain project truth; seochecker, elementorjson and programmeren remain separate active core repositories. Only Checklist is a gated consolidation target."
 }

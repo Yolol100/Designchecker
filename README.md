@@ -29,6 +29,7 @@ npm run setup:browsers
 npm run build
 npm test
 npm run smoke
+python3 scripts/validate_toolkit_contract.py
 ```
 
 The default branch contains reusable capability, validators, fixtures and regression tests. Project-specific targets, screenshots and run evidence stay temporary and are not committed to `main`.

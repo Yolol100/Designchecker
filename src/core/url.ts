@@ -19,14 +19,18 @@ function isPrivateIpv4(host: string): boolean {
 }
 
 function isPrivateIpv6(host: string): boolean {
-  const normalized = host.toLowerCase();
+  // WHATWG URL canonicalizes both dotted and expanded mapped IPv6 to hex.
+  const normalized = new URL(`http://[${host}]/`).hostname.slice(1, -1);
   if (normalized === '::' || normalized === '::1') return true;
   if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
   if (/^fe[89ab]/.test(normalized)) return true;
   if (normalized.startsWith('ff')) return true;
   if (normalized.startsWith('2001:db8:')) return true;
-  const mapped = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  return mapped ? isPrivateIpv4(mapped[1] ?? '') : false;
+  const mapped = normalized.match(/^::ffff:([a-f0-9]+):([a-f0-9]+)$/);
+  if (!mapped) return false;
+  const high = parseInt(mapped[1]!, 16);
+  const low = parseInt(mapped[2]!, 16);
+  return isPrivateIpv4([high >> 8, high & 255, low >> 8, low & 255].join('.'));
 }
 
 export function isBlockedAddress(host: string): boolean {

@@ -1,40 +1,43 @@
 {
   "schema_version": "1.3",
-  "status": "shared-browser-evidence-active-with-checklist-consolidation-gated",
+  "status": "historical-migration-map-design-only-direct-runtime",
   "central_repository": "Yolol100/Designchecker",
   "default_surface": "chatgpt-web-github-direct",
   "mcp_required": false,
   "migrations": [
     {
       "legacy_repository": "Yolol100/seochecker",
-      "replacement_command": "seo-technical",
+      "replacement_command": null,
       "owner": "seo",
       "project_id": "project-seo",
-      "runtime_status": "bounded-page-observation-only",
+      "runtime_status": "owner-repository-only",
       "execution_status": "not-a-replacement",
-      "reason": "Designchecker may supply bounded page, link, HTML or lab signals. Yolol100/seochecker remains the active core runtime for crawl, Lighthouse, Nu HTML and technical SEO regression evidence."
+      "reason": "Use the registered owner repository. The unused standalone Designchecker script was removed; native bounded observation helpers do not replace owner runtime evidence."
     },
     {
       "legacy_repository": "Yolol100/Leadscanner",
       "replacement_command": null,
       "owner": "leads",
       "project_id": "project-leads",
-      "runtime_status": "excluded-no-change",
+      "runtime_status": "owner-repository-only",
       "execution_status": "not-formally-replaced",
-      "reason": "Leadscanner is explicitly outside this simplification. No Designchecker route may replace its registered provenance or operational contract."
+      "reason": "Use the registered owner repository. The unused standalone Designchecker script was removed; native bounded observation helpers do not replace owner runtime evidence."
     },
     {
       "legacy_repository": "Yolol100/elementorjson",
-      "replacement_command": "elementor-json",
+      "replacement_command": null,
       "owner": "elementor",
       "project_id": "project-elementor",
-      "runtime_status": "source-lint-only",
+      "runtime_status": "owner-repository-only",
       "execution_status": "not-a-replacement",
-      "reason": "Designchecker may inspect source JSON or public rendering signals. Yolol100/elementorjson remains the active core runtime for importer roundtrip, pinned Elementor, native Kit and controlled browser evidence."
+      "reason": "Use the registered owner repository. The unused standalone Designchecker script was removed; native bounded observation helpers do not replace owner runtime evidence."
     },
     {
       "legacy_repository": "Yolol100/programmeren",
-      "replacement_commands": ["performance", "html"],
+      "replacement_commands": [
+        "performance",
+        "html"
+      ],
       "owner": "wordpressqualityarchitect",
       "project_id": "project-plugin",
       "runtime_status": "bounded-browser-signals-only",
@@ -43,7 +46,13 @@
     },
     {
       "legacy_repository": "Yolol100/Checklist",
-      "replacement_commands": ["qa", "a11y", "links", "performance", "html"],
+      "replacement_commands": [
+        "qa",
+        "a11y",
+        "links",
+        "performance",
+        "html"
+      ],
       "owner": "website-qa-checklist",
       "project_id": "project-checklist",
       "runtime_status": "migration-evidence-parity-pending",
@@ -51,5 +60,5 @@
       "reason": "This is the only repository consolidation in Designchecker. Checklist remains active until raw evidence, formal Evidence Manifest finalization, request/run correlation, privacy guards and Website QA acceptance are proven equivalent."
     }
   ],
-  "policy": "Designchecker is shared read-only browser evidence, not a universal specialist runtime. Installed Skills remain method owners; registered Drive manifests remain project truth; seochecker, elementorjson and programmeren remain separate active core repositories. Only Checklist is a gated consolidation target."
+  "policy": "Historical routing map only. Current direct execution is Design-owned; SEO, Elementor and Leads use their registered owner repositories. Removed standalone legacy scripts have no active callers."
 }

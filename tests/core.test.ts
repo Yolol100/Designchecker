@@ -29,3 +29,13 @@ test('evidence preserves owner and limits', () => {
   assert.deepEqual(result.limits, ['manual test required']);
   assert.equal(result.schemaVersion, '1.0');
 });
+
+test('mapped IPv6 cannot hide a private IPv4 target', () => {
+  delete process.env.ALLOW_PRIVATE_TARGETS;
+  for (const address of ['::ffff:127.0.0.1', '::ffff:7f00:1', '0:0:0:0:0:ffff:7f00:1', '::ffff:a9fe:a9fe', '::ffff:c0a8:101', '0:0:0:0:0:0:0:1']) {
+    assert.equal(isBlockedAddress(address), true, address);
+    assert.throws(() => assertSafeTarget(`http://[${address}]/`), /blocked/i);
+  }
+  assert.equal(isBlockedAddress('::ffff:8.8.8.8'), false);
+  assert.equal(isBlockedAddress('::ffff:808:808'), false);
+});

@@ -19,7 +19,6 @@ function isPrivateIpv4(host: string): boolean {
 }
 
 function isPrivateIpv6(host: string): boolean {
-  // WHATWG URL canonicalizes both dotted and expanded mapped IPv6 to hex.
   const normalized = new URL(`http://[${host}]/`).hostname.slice(1, -1);
   if (normalized === '::' || normalized === '::1') return true;
   if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
@@ -54,15 +53,27 @@ export function assertSafeTarget(input: string): URL {
   return url;
 }
 
-export async function assertPublicTarget(input: string): Promise<URL> {
+export async function resolvePublicTarget(input: string): Promise<{ url: URL; address: string; family: 4 | 6 }> {
   const url = assertSafeTarget(input);
-  if (process.env.ALLOW_PRIVATE_TARGETS === '1') return url;
   const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  if (isIP(hostname)) return url;
+  const literalFamily = isIP(hostname);
+  if (process.env.ALLOW_PRIVATE_TARGETS === '1') {
+    if (literalFamily === 4 || literalFamily === 6) return { url, address: hostname, family: literalFamily };
+    const records = await lookup(hostname, { all: true, verbatim: true });
+    if (records.length === 0) throw new Error('Target hostname did not resolve.');
+    const preferred = records.find((record) => record.family === 4) ?? records[0]!;
+    return { url, address: preferred.address, family: preferred.family as 4 | 6 };
+  }
+  if (literalFamily === 4 || literalFamily === 6) return { url, address: hostname, family: literalFamily };
   const records = await lookup(hostname, { all: true, verbatim: true });
   if (records.length === 0) throw new Error('Target hostname did not resolve.');
   for (const record of records) {
     if (isBlockedAddress(record.address)) throw new Error(`Target hostname resolves to blocked address ${record.address}.`);
   }
-  return url;
+  const preferred = records.find((record) => record.family === 4) ?? records[0]!;
+  return { url, address: preferred.address, family: preferred.family as 4 | 6 };
+}
+
+export async function assertPublicTarget(input: string): Promise<URL> {
+  return (await resolvePublicTarget(input)).url;
 }

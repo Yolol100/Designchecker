@@ -1,6 +1,7 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "owner_skill": "design",
+  "consumer_skills": ["website-qa-checklist"],
   "project_id": "project-design",
   "repository": "Yolol100/Designchecker",
   "evidence_role": "controlled_runtime_design_evidence",
@@ -24,7 +25,9 @@
     {"tool":"vnu-jar","path":"package.json","contains":"vnu-jar"}
   ],
   "boundaries": [
-    "Direct routing is Design-only; SEO, Elementor, Leads, Website QA and Programmeren use their owner repositories.",
+    "Design remains the only repository owner and all direct command routes retain owner=design/project-design.",
+    "Website QA may consume bounded reproducible public browser/axe/Lighthouse/markup/visual-diff evidence from this repository for independent QA acceptance; this does not transfer Design policy ownership or authorize design changes.",
+    "SEO, Elementor, Leads and Programmeren use their owner repositories rather than this capability.",
     "MCP packages may exist as optional adapters but are never required for the direct GitHub route.",
     "Automated accessibility signals are not a WCAG conformance claim."
   ]

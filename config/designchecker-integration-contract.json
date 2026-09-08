@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "controller": "webactueel-workflow",
   "runtime_capability": "designchecker-direct",
-  "purpose": "Define when, why and how ChatGPT may invoke Designchecker after Skill ownership and live project-source selection are resolved.",
+  "purpose": "Define when, why and how ChatGPT may invoke Designchecker after Skill ownership and live project-source selection are resolved, including allowlisted Website QA security evidence.",
   "decision_order": [
     "goal",
     "domain_owner",
@@ -23,11 +23,11 @@
       "the route target type and preconditions are satisfied"
     ],
     "do_not_invoke_when_any": [
-      "a text-only answer or source-only design decision is sufficient",
+      "a text-only answer or source-only decision is sufficient",
       "an explicit Figma, Canva, Product Design or ImageGen deliverable owns the requested execution",
       "the live project source is blocked, stale or conflicting",
       "the selected command contract is blocked",
-      "the requested claim needs independent Website QA evidence beyond Designchecker's evidence level"
+      "the requested claim exceeds the selected route evidence level"
     ],
     "ownership_rule": "Designchecker never becomes domain owner. It returns evidence to the Skill that already owns the task."
   },
@@ -36,35 +36,21 @@
     "project_id": "project-design",
     "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
     "routes": [
-      {
-        "command": "design",
-        "for": "rendered-page design inspection",
-        "why": "Runtime layout, hierarchy, components or overflow can materially change a Design decision.",
-        "selectors": ["ia-navigation","conversion-forms","ecommerce-checkout","system-accessibility","quality-audit","handoff","design-engineering","evidence-baseline"],
-        "max_evidence_level": "controlled_runtime"
-      },
-      {
-        "command": "a11y",
-        "for": "automated design accessibility risk signals",
-        "why": "Automated findings can change component/design acceptance criteria but do not prove WCAG conformance.",
-        "selectors": ["system-accessibility","quality-audit"],
-        "max_evidence_level": "controlled_runtime"
-      },
-      {
-        "command": "design-baseline",
-        "for": "pre-change reproducible visual baseline",
-        "why": "Redesign, cleanup, before/after, handoff and claim workflows require evidence before mutation.",
-        "selectors": ["quality-audit","handoff","design-engineering","evidence-baseline","claims-scoring"],
-        "max_evidence_level": "controlled_runtime"
-      },
-      {
-        "command": "design-diff",
-        "for": "same-scope before/after screenshot comparison",
-        "why": "Quantifies candidate visual regression or change from persisted Design evidence while leaving quality judgement with Design.",
-        "selectors": ["quality-audit","evidence-baseline","claims-scoring"],
-        "max_evidence_level": "source"
-      }
+      {"command":"design","for":"rendered-page design inspection","why":"Runtime layout, hierarchy, components or overflow can materially change a Design decision.","selectors":["ia-navigation","conversion-forms","ecommerce-checkout","system-accessibility","quality-audit","handoff","design-engineering","evidence-baseline"],"max_evidence_level":"controlled_runtime"},
+      {"command":"a11y","for":"automated design accessibility risk signals","why":"Automated findings can change component/design acceptance criteria but do not prove WCAG conformance.","selectors":["system-accessibility","quality-audit"],"max_evidence_level":"controlled_runtime"},
+      {"command":"design-baseline","for":"pre-change reproducible visual baseline","why":"Redesign, cleanup, before/after, handoff and claim workflows require evidence before mutation.","selectors":["quality-audit","handoff","design-engineering","evidence-baseline","claims-scoring"],"max_evidence_level":"controlled_runtime"},
+      {"command":"design-diff","for":"same-scope before/after screenshot comparison","why":"Quantifies candidate visual regression or change from persisted Design evidence while leaving quality judgement with Design.","selectors":["quality-audit","evidence-baseline","claims-scoring"],"max_evidence_level":"source"}
     ]
+  },
+  "website_qa": {
+    "owner": "website-qa-checklist",
+    "project_id": "project-checklist",
+    "manifest_file_id": "1P4jFmUFGjZIEAv2nwrrvV8c9egq0iEHC",
+    "routes": [
+      {"command":"qa-zap-baseline","for":"passive OWASP ZAP baseline signals","why":"Passive web-security findings can change release risk or retest scope without mutating the target.","selectors":["security","release","evidence-runtime","scan-fix-retest","claim-scoring"],"max_evidence_level":"controlled_runtime"},
+      {"command":"qa-tls","for":"TLS/certificate/protocol configuration signals","why":"TLS evidence can change release risk or remediation priority while interpretation stays with Website QA.","selectors":["security","release","evidence-runtime","scan-fix-retest","claim-scoring"],"max_evidence_level":"controlled_runtime"}
+    ],
+    "claim_boundary": "These automated scanners provide diagnostic evidence only; they do not prove security, compliance or absence of vulnerabilities."
   },
   "execution": {
     "request_file": "requests/command.json",
@@ -73,7 +59,7 @@
     "evidence_reuse_rule": "Cross-command screenshot inputs must be existing files under results/evidence/; arbitrary repository paths are rejected.",
     "workflow": ".github/workflows/command.yml",
     "source_context_required": ["integrity_status","project_id","manifest_file_id","source_set_version","checked_at"],
-    "design_source_selector_required": true,
+    "source_selector_required_for_registered_routes": true,
     "writes_to_target": false,
     "additional_account_required": false,
     "api_key_required": false,

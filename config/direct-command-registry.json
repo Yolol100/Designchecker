@@ -1,14 +1,14 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "runtime": "chatgpt-web-github-direct",
   "runtime_capability": "designchecker-direct",
-  "transport": "ChatGPT GitHub app writes requests/command.json; GitHub Actions executes and commits results/<request_id>.json",
+  "transport": "ChatGPT GitHub app writes requests/command.json on a temporary runtime branch; GitHub Actions executes and uploads run-scoped evidence.",
   "decision_order": ["goal","domain_owner","live_project_manifest","task_source_selectors","evidence_need","direct_command","result_to_owner"],
   "additional_account_required": false,
   "api_key_required": false,
   "mcp_required": false,
   "source_integrity_required": true,
-  "routing_boundary": "Only Design-owned controlled-runtime evidence is selectable here. SEO, Elementor, Leads, Website QA and Programmeren use their own owner repositories and contracts.",
+  "routing_boundary": "Direct execution is limited to registered Design evidence routes and two read-only Website QA security evidence routes. Other owners use their own repositories and contracts.",
   "routes": [
     {
       "command":"design",
@@ -65,6 +65,34 @@
       "trigger_when":"Design owns an accessibility-sensitive component/page decision and automated risk signals can change the design decision or acceptance criteria.",
       "do_not_trigger_when":"The request is a formal WCAG conformance claim or independent browser/AT acceptance; route that acceptance to Website QA.",
       "why":"Find automated accessibility risks as controlled-runtime support evidence, never as a conformance claim."
+    },
+    {
+      "command":"qa-zap-baseline",
+      "owner":"website-qa-checklist",
+      "project_id":"project-checklist",
+      "tool":"qa_zap_baseline",
+      "capability":"passive-security-signals",
+      "executor":{"kind":"cli","name":"zap"},
+      "target_type":"public_url",
+      "preconditions":["verified_live_source","selected_source_selector"],
+      "source_selectors":["security","release","evidence-runtime","scan-fix-retest","claim-scoring"],
+      "trigger_when":"Website QA needs passive web security signals for a public target and those signals can change release risk or targeted retest scope.",
+      "do_not_trigger_when":"The target is private/local, active exploitation is requested, authentication is required, or a passive scan cannot support the requested claim.",
+      "why":"Collect bounded OWASP ZAP baseline evidence without target mutation or automatic security-conformance claims."
+    },
+    {
+      "command":"qa-tls",
+      "owner":"website-qa-checklist",
+      "project_id":"project-checklist",
+      "tool":"qa_testssl",
+      "capability":"tls-configuration-signals",
+      "executor":{"kind":"cli","name":"tls"},
+      "target_type":"public_url",
+      "preconditions":["verified_live_source","selected_source_selector"],
+      "source_selectors":["security","release","evidence-runtime","scan-fix-retest","claim-scoring"],
+      "trigger_when":"Website QA needs reproducible TLS/certificate/protocol configuration evidence for an HTTPS target.",
+      "do_not_trigger_when":"The target is not HTTPS, is private/local, or the task does not depend on TLS configuration evidence.",
+      "why":"Collect accountless testssl.sh evidence while leaving severity interpretation and release acceptance with Website QA."
     }
   ]
 }

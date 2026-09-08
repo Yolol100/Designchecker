@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Design toolkit registration and owner boundaries, locally and in CI."""
+"""Validate Designchecker toolkit registration and bounded owner routes, locally and in CI."""
 
 import json, pathlib
 c=json.load(open('toolkit-contract.json', encoding='utf-8'))
@@ -15,5 +15,15 @@ for a in c['usage_assertions']:
     covered.add(a['tool'])
 assert covered==set(ids), f'unwired tools: {set(ids)-covered}'
 routes=json.load(open('config/direct-command-registry.json', encoding='utf-8'))['routes']
-assert routes and all(r['owner']=='design' and r['project_id']=='project-design' for r in routes), 'cross-owner direct route present'
+assert routes, 'direct routes missing'
+for route in routes:
+    owner=route['owner']
+    project=route['project_id']
+    if owner == 'design':
+        assert project == 'project-design', f'Design route project mismatch: {route}'
+    elif owner == 'website-qa-checklist':
+        assert project == 'project-checklist', f'Website QA route project mismatch: {route}'
+        assert route['command'] in {'qa-zap-baseline','qa-tls'}, f'unapproved Website QA direct route: {route}'
+    else:
+        raise AssertionError(f'unsupported direct owner: {owner}')
 print('toolkit-contract: OK')

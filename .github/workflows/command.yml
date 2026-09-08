@@ -37,16 +37,30 @@ jobs:
         run: |
           command=$(node -p "JSON.parse(require('fs').readFileSync('requests/command.json','utf8')).command")
           case "$command" in
-            seo-technical|elementor-json|html|design-diff)
+            seo-technical|elementor-json|html|design-diff|qa-zap-baseline|qa-tls)
               echo "requires_browser=false" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "requires_browser=true" >> "$GITHUB_OUTPUT"
               ;;
           esac
+          if [[ "$command" == "qa-tls" ]]; then
+            echo "requires_testssl=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "requires_testssl=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Install Chromium when required
         if: steps.runtime.outputs.requires_browser == 'true'
         run: npx playwright install --with-deps chromium
+      - name: Checkout pinned testssl.sh when required
+        if: steps.runtime.outputs.requires_testssl == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: testssl/testssl.sh
+          ref: 97763a411c525720a5f9bd9d2cded416b10f210a
+          path: .tools/testssl
+          fetch-depth: 1
+          persist-credentials: false
       - name: Run requested capability
         id: command
         shell: bash

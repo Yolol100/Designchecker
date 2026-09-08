@@ -34,8 +34,12 @@ const source = required(request.source_context, 'source_context');
 const route = registry.routes.find((item) => item.command === command && item.owner === owner);
 if (!route) throw new Error(`No direct command route for ${command} owned by ${owner}.`);
 if (route.status && route.status !== 'ready') throw new Error(route.blocked_reason || `Command route ${command}/${owner} is ${route.status}.`);
-if (route.owner !== 'design') throw new Error(`Designchecker direct runtime refuses non-Design owner: ${route.owner}.`);
-if (route.executor?.kind !== 'cli') throw new Error(`Designchecker direct runtime only permits Design CLI executors, got: ${route.executor?.kind || 'missing'}.`);
+const allowedOwners = new Set(['design', 'website-qa-checklist']);
+if (!allowedOwners.has(route.owner)) throw new Error(`Designchecker direct runtime refuses unsupported owner: ${route.owner}.`);
+if (route.owner === 'website-qa-checklist' && !['qa-zap-baseline', 'qa-tls'].includes(route.command)) {
+  throw new Error(`Website QA direct route is not allowlisted: ${route.command}.`);
+}
+if (route.executor?.kind !== 'cli') throw new Error(`Designchecker direct runtime only permits registered CLI executors, got: ${route.executor?.kind || 'missing'}.`);
 if (!['public_url', 'repo_evidence_pair'].includes(route.target_type)) throw new Error(`Designchecker direct runtime refuses target_type: ${route.target_type}.`);
 
 const binding = sourceBindings.bindings.find((item) => item.project_id === route.project_id);
@@ -77,7 +81,8 @@ const common = {
   env: {
     ...process.env,
     WEBACTUEEL_EVIDENCE_OWNER: route.owner,
-    WEBACTUEEL_EVIDENCE_TOOL: route.tool
+    WEBACTUEEL_EVIDENCE_TOOL: route.tool,
+    WEBACTUEEL_EVIDENCE_DIR: evidenceRoot
   }
 };
 
@@ -100,7 +105,7 @@ try {
 
 const resolvedTarget = target || `${beforePath} -> ${afterPath}`;
 const result = {
-  schema_version: 'webactueel-command-result/1.3',
+  schema_version: 'webactueel-command-result/1.4',
   request_id: requestId,
   status: child.status === 0 ? 'success' : 'failed',
   requested_by: request.requested_by || 'chatgpt-web',

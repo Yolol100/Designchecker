@@ -8,6 +8,8 @@ import {
   inspectLeadSite,
   inspectSeo,
   runLighthouse,
+  runTlsAudit,
+  runZapBaseline,
   scanAccessibility,
   validateHtml
 } from './tools/index.js';
@@ -15,7 +17,7 @@ import type { Owner } from './core/types.js';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
-  if (!command) throw new Error('Command required: design|seo|a11y|elementor|leads|qa|links|performance|html|baseline|diff');
+  if (!command) throw new Error('Command required: design|seo|a11y|elementor|leads|qa|links|performance|html|baseline|diff|zap|tls');
   const owner = process.env.WEBACTUEEL_EVIDENCE_OWNER as Owner | undefined;
   const tool = process.env.WEBACTUEEL_EVIDENCE_TOOL || undefined;
   let result: unknown;
@@ -31,6 +33,8 @@ async function main() {
     case 'html': result = await validateHtml(required(args[0], 'URL'), owner ?? 'website-qa-checklist', tool ?? 'html_validate_url'); break;
     case 'baseline': result = await captureDesignBaseline(required(args[0], 'URL'), required(args[1], 'output directory')); break;
     case 'diff': result = await compareScreenshots(required(args[0], 'before image'), required(args[1], 'after image'), required(args[2], 'diff image')); break;
+    case 'zap': result = await runZapBaseline(required(args[0], 'URL')); break;
+    case 'tls': result = await runTlsAudit(required(args[0], 'URL')); break;
     default: throw new Error(`Unknown command: ${command}`);
   }
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

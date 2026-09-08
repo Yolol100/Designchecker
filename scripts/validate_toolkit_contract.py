@@ -3,6 +3,8 @@
 
 import json, pathlib
 c=json.load(open('toolkit-contract.json', encoding='utf-8'))
+assert c.get('owner_skill') == 'design', 'Design must remain the canonical repository owner'
+assert c.get('consumer_skills') == ['website-qa-checklist'], 'only Website QA may consume Designchecker cross-skill evidence'
 for key in ('requires_account','requires_api_key','requires_mcp'):
     assert c.get(key) is False, f'{key} must be false'
 ids=[t['id'] for t in c['tools']]

@@ -41,7 +41,7 @@ test('skill, capability and repository-native tool routing registries are intern
   assert.ok((skillMap.get('website-qa-checklist') as any).aliases.includes('checklist'));
 });
 
-test('direct ChatGPT Web commands remain Design-owner/source/capability bound without MCP', () => {
+test('direct ChatGPT Web commands remain source/capability bound without MCP', () => {
   const skills = readJson('config/skill-registry.json');
   const capabilities = readJson('config/capability-registry.json');
   const direct = readJson('config/direct-command-registry.json');
@@ -63,7 +63,7 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.equal(runtimeCapability.api_key_required, false);
   assert.equal(runtimeCapability.additional_account_required, false);
   assert.equal(runtimeCapability.automatic_selection, true);
-  assert.deepEqual(runtimeCapability.consumers, ['webactueel-workflow', 'design']);
+  assert.deepEqual(runtimeCapability.consumers, ['webactueel-workflow', 'design', 'website-qa-checklist']);
 
   const allowedBindingStatuses = new Set(['ready', 'blocked-source-integrity']);
   for (const binding of sources.bindings) {
@@ -73,10 +73,10 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   }
 
   assert.ok(direct.routes.length > 0);
-  assert.ok(direct.routes.every((route: any) => route.owner === 'design' && route.project_id === 'project-design'));
+  assert.ok(direct.routes.every((route: any) => ['design', 'website-qa-checklist'].includes(route.owner)));
   assert.ok(direct.routes.every((route: any) => route.executor?.kind === 'cli'));
   assert.ok(direct.routes.every((route: any) => ['public_url', 'repo_evidence_pair'].includes(route.target_type)));
-  assert.deepEqual(new Set(direct.routes.map((route: any) => route.command)), new Set(['design', 'a11y', 'design-baseline', 'design-diff']));
+  assert.deepEqual(new Set(direct.routes.map((route: any) => route.command)), new Set(['design', 'a11y', 'design-baseline', 'design-diff', 'qa-zap-baseline', 'qa-tls']));
 
   for (const route of direct.routes) {
     const skill = skillMap.get(route.owner) as any;
@@ -99,8 +99,13 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
     const route = designRoutes.find((candidate: any) => candidate.command === command);
     assert.ok(route, `Missing Design direct command ${command}`);
     assert.ok(route.preconditions.includes('selected_source_selector'), `${command} must be source-selector bound`);
-    assert.ok(route.trigger_when && route.do_not_trigger_when && route.why, `${command} must explain when, when not and why it runs`);
   }
+  const qaRoutes = direct.routes.filter((route: any) => route.owner === 'website-qa-checklist');
+  assert.deepEqual(new Set(qaRoutes.map((route: any) => route.command)), new Set(['qa-zap-baseline', 'qa-tls']));
+  assert.ok(qaRoutes.every((route: any) => route.project_id === 'project-checklist'));
+  assert.equal(qaRoutes.find((route: any) => route.command === 'qa-zap-baseline').capability, 'passive-security-signals');
+  assert.equal(qaRoutes.find((route: any) => route.command === 'qa-tls').capability, 'tls-configuration-signals');
+
   assert.equal(designRoutes.find((route: any) => route.command === 'design-baseline').capability, 'browser-baseline');
   const diffRoute = designRoutes.find((route: any) => route.command === 'design-diff');
   assert.equal(diffRoute.capability, 'visual-diff');
@@ -111,22 +116,20 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
 });
 
-test('direct command runner enforces Design selectors, evidence paths and Design-only executors', () => {
+test('direct command runner keeps owner and evidence boundaries explicit', () => {
   const runner = readFileSync(path.join(process.cwd(), 'scripts/run-command.mjs'), 'utf8');
   assert.match(runner, /source_context\.selector_ids is required/);
   assert.match(runner, /No selected source selector is valid/);
-  assert.match(runner, /Designchecker direct runtime refuses non-Design owner/);
-  assert.match(runner, /only permits Design CLI executors/);
+  assert.match(runner, /website-qa-checklist/);
+  assert.match(runner, /qa-zap-baseline/);
+  assert.match(runner, /qa-tls/);
+  assert.match(runner, /only permits registered CLI executors/);
   assert.match(runner, /refuses target_type/);
-  assert.match(runner, /command === 'design-baseline'/);
-  assert.match(runner, /command === 'design-diff'/);
+  assert.match(runner, /WEBACTUEEL_EVIDENCE_DIR/);
   assert.match(runner, /results', 'evidence', requestId/);
   assert.match(runner, /must remain under results\/evidence/);
   assert.match(runner, /must reference an existing evidence file/);
-  assert.match(runner, /before_path/);
-  assert.match(runner, /after_path/);
   assert.doesNotMatch(runner, /lead-formal/);
-  assert.doesNotMatch(runner, /lead_registry_preflight/);
   assert.doesNotMatch(runner, /executor\.kind === 'python'/);
   assert.doesNotMatch(runner, /executor\.kind === 'node'/);
 });

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "controller": "webactueel-workflow",
   "canonical_skill_registry": "webactueel-workflow/references/skill-registry.json",
   "canonical_project_source_registry": "webactueel-workflow/references/project-source-registry.json",
@@ -12,6 +12,6 @@
     {"id":"elementor","role":"domain-owner","project_id":"project-elementor","project_truth":"live-google-drive-manifest","capabilities":["elementor-inspection","elementor-json-audit","browser-baseline"]},
     {"id":"wordpressqualityarchitect","aliases":["programmeren","snippet"],"role":"conditional-domain-owner","project_id":"project-plugin","project_truth":"live-google-drive-manifest","capabilities":["technical-evidence","html-validation","performance-signals"]},
     {"id":"leads","aliases":["lead"],"role":"domain-owner","project_id":"project-leads","project_truth":"lead-registry-first-then-live-google-drive-manifest","capabilities":["public-site-inspection","lead-formal-browser-evidence","contact-signal-inspection"]},
-    {"id":"website-qa-checklist","aliases":["checklist"],"role":"independent-qa-owner","project_id":"project-checklist","project_truth":"live-google-drive-manifest","capabilities":["qa-evidence-bundle","browser-baseline","accessibility-signals","performance-signals","html-validation","link-check","visual-diff"]}
+    {"id":"website-qa-checklist","aliases":["checklist"],"role":"independent-qa-owner","project_id":"project-checklist","project_truth":"live-google-drive-manifest","capabilities":["qa-evidence-bundle","browser-baseline","accessibility-signals","performance-signals","html-validation","link-check","visual-diff","passive-security-signals","tls-configuration-signals"]}
   ]
 }

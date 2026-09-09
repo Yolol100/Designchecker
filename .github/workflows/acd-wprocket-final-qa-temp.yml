@@ -26,14 +26,15 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-      - name: Repository checks
+      - name: Static repository checks
         run: |
           npm run check
           npm run build
           npm test
-          npm run smoke
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Browser smoke check
+        run: npm run smoke
       - name: Run two stable QA rounds
         run: node requests/acd-wprocket-qa.mjs
       - name: Upload QA evidence

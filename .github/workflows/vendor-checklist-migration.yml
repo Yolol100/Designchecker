@@ -30,12 +30,8 @@ jobs:
           set -euo pipefail
           rm -rf legacy/checklist
           mkdir -p legacy/checklist
-          cp -R .migration-upstream-checklist/src legacy/checklist/src
-          cp -R .migration-upstream-checklist/test legacy/checklist/test
-          cp .migration-upstream-checklist/package.json legacy/checklist/package.json
-          cp .migration-upstream-checklist/package-lock.json legacy/checklist/package-lock.json
-          cp .migration-upstream-checklist/toolkit-contract.json legacy/checklist/toolkit-contract.json
-          cp .migration-upstream-checklist/MIGRATION.md legacy/checklist/UPSTREAM-MIGRATION.md
+          cp -a .migration-upstream-checklist/. legacy/checklist/
+          rm -rf legacy/checklist/.git
           printf '%s\n' '25bf9fd8ccefdd06cb4e7adf36e3ab332c76b854' > legacy/checklist/UPSTREAM-COMMIT
           rm -rf .migration-upstream-checklist
       - name: Commit vendored compatibility runtime
@@ -49,5 +45,5 @@ jobs:
             echo 'No vendoring changes.'
             exit 0
           fi
-          git commit -m 'migration: vendor frozen Checklist runtime into Designchecker'
+          git commit -m 'migration: vendor complete frozen Checklist runtime into Designchecker'
           git push origin HEAD:migration/checklist-parity-20260909

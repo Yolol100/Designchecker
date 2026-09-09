@@ -23,7 +23,7 @@
     "pixelmatch": "^7.2.0",
     "playwright": "^1.61.0",
     "sharp": "^0.35.4",
-    "vnu-jar": "^26.7.31",
+    "vnu-jar": "^26.9.5",
     "zod": "^4.5.4"
   },
   "devDependencies": {

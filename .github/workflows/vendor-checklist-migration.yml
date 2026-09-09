@@ -32,6 +32,8 @@ jobs:
           mkdir -p legacy/checklist
           cp -R .migration-upstream-checklist/src legacy/checklist/src
           cp -R .migration-upstream-checklist/test legacy/checklist/test
+          cp .migration-upstream-checklist/package.json legacy/checklist/package.json
+          cp .migration-upstream-checklist/package-lock.json legacy/checklist/package-lock.json
           cp .migration-upstream-checklist/toolkit-contract.json legacy/checklist/toolkit-contract.json
           cp .migration-upstream-checklist/MIGRATION.md legacy/checklist/UPSTREAM-MIGRATION.md
           printf '%s\n' '25bf9fd8ccefdd06cb4e7adf36e3ab332c76b854' > legacy/checklist/UPSTREAM-COMMIT

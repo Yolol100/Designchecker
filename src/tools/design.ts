@@ -65,12 +65,12 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
       const badResponses: Array<{ url: string; status: number }> = [];
 
       page.on('console', (message) => {
-        if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500));
+        if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 1000));
       });
-      page.on('pageerror', (error) => pageErrors.push(error.message.slice(0, 500)));
-      page.on('requestfailed', (request) => failedRequests.push({ url: request.url().slice(0, 300), failure: request.failure()?.errorText ?? null }));
+      page.on('pageerror', (error) => pageErrors.push((error.stack ?? error.message).slice(0, 2000)));
+      page.on('requestfailed', (request) => failedRequests.push({ url: request.url().slice(0, 500), failure: request.failure()?.errorText ?? null }));
       page.on('response', (response) => {
-        if (response.status() >= 400) badResponses.push({ url: response.url().slice(0, 300), status: response.status() });
+        if (response.status() >= 400) badResponses.push({ url: response.url().slice(0, 500), status: response.status() });
       });
 
       await installNetworkGuard(page);
@@ -96,10 +96,19 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
         imagesComplete: [...document.images].filter((image) => image.complete).length,
         links: document.querySelectorAll('a[href]').length,
         forms: document.querySelectorAll('form').length,
-        wprUsedCss: Boolean(document.getElementById('wpr-usedcss')),
+        stylesheets: document.querySelectorAll('link[rel="stylesheet"]').length,
+        inlineStyles: document.querySelectorAll('style').length,
         delayedRocketScripts: document.querySelectorAll('script[type="rocketlazyloadscript"]').length,
         lazyImages: document.querySelectorAll('img[data-lazy-src],img[loading="lazy"]').length
       }));
+
+      const html = await page.content();
+      const optimizationMarkers = {
+        wpRocketFootprint: html.includes('Performance optimized by WP Rocket'),
+        wprUsedCss: html.includes('id="wpr-usedcss"'),
+        rocketLazyScript: html.includes('rocketlazyloadscript'),
+        assetCleanupMention: /asset[ -]?clean[ -]?up/i.test(html)
+      };
 
       let menuTest: Record<string, unknown> = { attempted: false };
       if (viewport.width <= 480) {
@@ -114,10 +123,32 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
             menuTest = { attempted: true, visible: true, clickSucceeded: true, ariaExpandedBefore: before, ariaExpandedAfter: after };
             await toggle.click({ timeout: 3000 }).catch(() => undefined);
           } catch (error) {
-            menuTest = { attempted: true, visible: true, clickSucceeded: false, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) };
+            menuTest = { attempted: true, visible: true, clickSucceeded: false, error: error instanceof Error ? error.message.slice(0, 500) : String(error).slice(0, 500) };
           }
         } else {
           menuTest = { attempted: true, visible: false };
+        }
+      }
+
+      let accordionTest: Record<string, unknown> = { attempted: false };
+      const accordion = page.locator('.elementor-accordion-title, .e-n-accordion-item-title, .ekit-accordion--toggler, details > summary').first();
+      const accordionVisible = await accordion.isVisible().catch(() => false);
+      if (accordionVisible) {
+        const before = await accordion.evaluate((element) => ({
+          ariaExpanded: element.getAttribute('aria-expanded'),
+          detailsOpen: element.parentElement?.tagName === 'DETAILS' ? (element.parentElement as HTMLDetailsElement).open : null
+        })).catch(() => ({ ariaExpanded: null, detailsOpen: null }));
+        try {
+          await accordion.click({ timeout: 3000 });
+          await page.waitForTimeout(300);
+          const after = await accordion.evaluate((element) => ({
+            ariaExpanded: element.getAttribute('aria-expanded'),
+            detailsOpen: element.parentElement?.tagName === 'DETAILS' ? (element.parentElement as HTMLDetailsElement).open : null
+          })).catch(() => ({ ariaExpanded: null, detailsOpen: null }));
+          accordionTest = { attempted: true, visible: true, clickSucceeded: true, before, after };
+          await accordion.click({ timeout: 3000 }).catch(() => undefined);
+        } catch (error) {
+          accordionTest = { attempted: true, visible: true, clickSucceeded: false, error: error instanceof Error ? error.message.slice(0, 500) : String(error).slice(0, 500) };
         }
       }
 
@@ -126,7 +157,9 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
         file,
         response: { status: response?.status() ?? null, ok: response?.ok() ?? null, finalUrl: page.url() },
         state,
+        optimizationMarkers,
         menuTest,
+        accordionTest,
         consoleErrors: consoleErrors.slice(0, 20),
         pageErrors: pageErrors.slice(0, 20),
         failedRequests: failedRequests.slice(0, 20),

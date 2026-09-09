@@ -1,0 +1,3 @@
+interface:
+  display_name: "Webactueel Checklist Runner"
+  short_description: "Collect read-only website evidence through GitHub Actions for the Website QA Skill."

@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "request_id": "acd-recheck-diensten-20260909",
+  "request_id": "acd-recheck-zakelijk-20260909",
   "command": "design-baseline",
   "owner": "design",
   "project_id": "project-design",
   "requested_by": "chatgpt-web",
-  "target": "https://acdcleaning.concept-webactueel-7.com/diensten/",
+  "target": "https://acdcleaning.concept-webactueel-7.com/zakelijk/",
   "source_context": {
     "integrity_status": "verified",
     "project_id": "project-design",

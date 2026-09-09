@@ -81,7 +81,9 @@ const common = {
   }
 };
 
-if (command === 'design-baseline') {
+if (command === 'media-audit') {
+  child = spawnSync(process.execPath, ['scripts/media-audit.mjs', target, evidenceRoot], common);
+} else if (command === 'design-baseline') {
   const baselineDir = path.join(evidenceRoot, 'baseline');
   child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
 } else if (command === 'design-diff') {

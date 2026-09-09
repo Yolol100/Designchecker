@@ -32,6 +32,24 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       const style = getComputedStyle(el);
       return { tag: el.tagName.toLowerCase(), text: (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 100), width: Math.round(rect.width), height: Math.round(rect.height), fontSize: style.fontSize, borderRadius: style.borderRadius, backgroundColor: style.backgroundColor, color: style.color };
     });
+    const elementorElements = [...document.querySelectorAll<HTMLElement>('.elementor-element[data-id]')].filter(visible).slice(0, 250).map((el) => {
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      const img = el.querySelector<HTMLImageElement>('img');
+      return {
+        id: el.dataset.id ?? null,
+        elementType: el.getAttribute('data-element_type'),
+        tag: el.tagName.toLowerCase(),
+        className: el.className,
+        top: Math.round(rect.top + window.scrollY),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        backgroundImage: style.backgroundImage,
+        backgroundColor: style.backgroundColor,
+        imgSrc: img?.currentSrc || img?.src || null,
+        text: (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 120)
+      };
+    });
     const forms = [...document.querySelectorAll('form')].slice(0, 20).map((form) => ({ fields: form.querySelectorAll('input,select,textarea').length, requiredFields: form.querySelectorAll('[required]').length, submitControls: form.querySelectorAll('button[type="submit"],input[type="submit"]').length }));
     const body = getComputedStyle(document.body);
     return {
@@ -40,7 +58,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       rootCssVariableCount: Object.keys(rootVars).length,
       rootCssVariables: Object.fromEntries(Object.entries(rootVars).slice(0, 150)),
       body: { fontFamily: body.fontFamily, fontSize: body.fontSize, lineHeight: body.lineHeight, color: body.color, backgroundColor: body.backgroundColor },
-      headings, buttons, forms,
+      headings, buttons, elementorElements, forms,
       counts: { links: document.querySelectorAll('a[href]').length, images: document.images.length, dialogs: document.querySelectorAll('dialog,[role="dialog"]').length, landmarks: document.querySelectorAll('main,nav,header,footer,aside,[role="main"],[role="navigation"]').length },
       viewport: { width: innerWidth, height: innerHeight },
       documentSize: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },

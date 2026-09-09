@@ -8,6 +8,13 @@ on:
       - '.github/workflows/run-website-qa.yml'
       - '.github/workflows/finalize-website-qa.yml'
       - '.github/workflows/checklist-parity.yml'
+  pull_request:
+    paths:
+      - 'legacy/checklist/**'
+      - '.github/workflows/run-website-qa.yml'
+      - '.github/workflows/finalize-website-qa.yml'
+      - '.github/workflows/checklist-parity.yml'
+      - 'src/core/browser.ts'
 
 permissions:
   contents: read

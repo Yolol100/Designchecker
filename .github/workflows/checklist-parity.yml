@@ -1,3 +1,4 @@
+# Final manual migration validation trigger.
 name: Checklist migration parity
 
 on:

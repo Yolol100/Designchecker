@@ -59,17 +59,83 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
     for (const viewport of viewports) {
       const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, reducedMotion: 'reduce' });
       const page = await context.newPage();
+      const consoleErrors: string[] = [];
+      const pageErrors: string[] = [];
+      const failedRequests: Array<{ url: string; failure: string | null }> = [];
+      const badResponses: Array<{ url: string; status: number }> = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500));
+      });
+      page.on('pageerror', (error) => pageErrors.push(error.message.slice(0, 500)));
+      page.on('requestfailed', (request) => failedRequests.push({ url: request.url().slice(0, 300), failure: request.failure()?.errorText ?? null }));
+      page.on('response', (response) => {
+        if (response.status() >= 400) badResponses.push({ url: response.url().slice(0, 300), status: response.status() });
+      });
+
       await installNetworkGuard(page);
-      await page.goto(url.toString(), { waitUntil: 'networkidle', timeout: 45000 });
+      const response = await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await page.waitForLoadState('load', { timeout: 15000 }).catch(() => undefined);
+      await page.waitForTimeout(3000);
+      await page.evaluate(async () => {
+        const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (fonts) await fonts.ready;
+      });
       assertSafeTarget(page.url());
+
       const file = path.join(outputDir, `${viewport.name}-${viewport.width}x${viewport.height}.png`);
       await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
-      const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
-      captures.push({ viewport, file, state });
+      const state = await page.evaluate(() => ({
+        title: document.title,
+        readyState: document.readyState,
+        scrollWidth: document.documentElement.scrollWidth,
+        scrollHeight: document.documentElement.scrollHeight,
+        horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1,
+        activeElement: document.activeElement?.tagName ?? null,
+        imageCount: document.images.length,
+        imagesComplete: [...document.images].filter((image) => image.complete).length,
+        links: document.querySelectorAll('a[href]').length,
+        forms: document.querySelectorAll('form').length,
+        wprUsedCss: Boolean(document.getElementById('wpr-usedcss')),
+        delayedRocketScripts: document.querySelectorAll('script[type="rocketlazyloadscript"]').length,
+        lazyImages: document.querySelectorAll('img[data-lazy-src],img[loading="lazy"]').length
+      }));
+
+      let menuTest: Record<string, unknown> = { attempted: false };
+      if (viewport.width <= 480) {
+        const toggle = page.locator('.elementor-menu-toggle, .elementskit-menu-hamburger, button[aria-label*="menu" i]').first();
+        const visible = await toggle.isVisible().catch(() => false);
+        if (visible) {
+          const before = await toggle.getAttribute('aria-expanded').catch(() => null);
+          try {
+            await toggle.click({ timeout: 3000 });
+            await page.waitForTimeout(300);
+            const after = await toggle.getAttribute('aria-expanded').catch(() => null);
+            menuTest = { attempted: true, visible: true, clickSucceeded: true, ariaExpandedBefore: before, ariaExpandedAfter: after };
+            await toggle.click({ timeout: 3000 }).catch(() => undefined);
+          } catch (error) {
+            menuTest = { attempted: true, visible: true, clickSucceeded: false, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) };
+          }
+        } else {
+          menuTest = { attempted: true, visible: false };
+        }
+      }
+
+      captures.push({
+        viewport,
+        file,
+        response: { status: response?.status() ?? null, ok: response?.ok() ?? null, finalUrl: page.url() },
+        state,
+        menuTest,
+        consoleErrors: consoleErrors.slice(0, 20),
+        pageErrors: pageErrors.slice(0, 20),
+        failedRequests: failedRequests.slice(0, 20),
+        badResponses: badResponses.slice(0, 20)
+      });
       await context.close();
     }
   } finally {
     await browser.close();
   }
-  return evidence({ owner, tool: toolName, target, data: { outputDir, captures, screenshotStability: STABLE_SCREENSHOT_OPTIONS }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.', SCREENSHOT_STABILITY_NOTE] });
+  return evidence({ owner, tool: toolName, target, data: { outputDir, captures, screenshotStability: STABLE_SCREENSHOT_OPTIONS, navigationStrategy: 'domcontentloaded + load<=15s + 3s settle + document.fonts.ready' }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.', SCREENSHOT_STABILITY_NOTE] });
 }

@@ -1,5 +1,6 @@
 name: acd-wprocket-final-qa-temp
 
+# Final post-cleanup verification run.
 on:
   push:
     branches:

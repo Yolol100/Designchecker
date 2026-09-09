@@ -1,11 +1,21 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { assertPublicTarget } from './url.js';
 
+export function isReadOnlyNetworkMethod(method: string): boolean {
+  return method.toUpperCase() === 'GET' || method.toUpperCase() === 'HEAD';
+}
+
 export async function installNetworkGuard(page: Page): Promise<void> {
   const checkedHosts = new Map<string, Promise<void>>();
   await page.route('**/*', async (route) => {
-    const requestUrl = route.request().url();
+    const request = route.request();
+    const requestUrl = request.url();
     try {
+      if (!isReadOnlyNetworkMethod(request.method())) {
+        await route.abort('blockedbyclient');
+        return;
+      }
+
       const parsed = new URL(requestUrl);
       if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
         const key = `${parsed.protocol}//${parsed.host}`;

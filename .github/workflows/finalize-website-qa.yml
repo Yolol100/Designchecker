@@ -1,0 +1,56 @@
+name: Finalize Website QA
+
+on:
+  push:
+    branches:
+      - 'runtime/**'
+    paths:
+      - "policy/queue/*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Identify immutable policy evaluation
+        id: policy
+        shell: bash
+        run: |
+          TOTAL_FILES="$(git show --pretty='' --name-only "$GITHUB_SHA" | sed '/^$/d' | wc -l | tr -d ' ')"
+          mapfile -t FILES < <(git show --pretty='' --name-only "$GITHUB_SHA" | grep -E '^policy/queue/[A-Za-z0-9._-]+\.json$' || true)
+          if [ "$TOTAL_FILES" -ne 1 ] || [ "${#FILES[@]}" -ne 1 ]; then exit 1; fi
+          POLICY_PATH="${FILES[0]}"
+          EVALUATION_ID="$(node -e 'const fs=require("fs"); const p=process.argv[1]; const r=JSON.parse(fs.readFileSync(p,"utf8")); process.stdout.write(String(r.evaluation_id||""));' "$POLICY_PATH")"
+          if ! [[ "$EVALUATION_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{2,79}$ ]]; then exit 1; fi
+          if [ "$(basename "$POLICY_PATH" .json)" != "$EVALUATION_ID" ]; then exit 1; fi
+          echo "policy_path=$POLICY_PATH" >> "$GITHUB_OUTPUT"
+          echo "evaluation_id=$EVALUATION_ID" >> "$GITHUB_OUTPUT"
+          echo "formal_path=results/formal/$EVALUATION_ID.json" >> "$GITHUB_OUTPUT"
+      - name: Install exact frozen Checklist dependencies
+        run: npm ci --prefix legacy/checklist --ignore-scripts --no-audit --no-fund
+      - name: Validate compatibility runtime
+        run: npm run --prefix legacy/checklist check
+      - name: Build formal evidence manifest
+        run: node legacy/checklist/src/finalize.js "${{ steps.policy.outputs.policy_path }}" "${{ steps.policy.outputs.formal_path }}"
+      - name: Validate Evidence Manifest 3.0 schema semantics
+        run: node legacy/checklist/src/validate-formal.js "${{ steps.policy.outputs.formal_path }}"
+      - name: Validate formal cross-field hardening
+        run: node legacy/checklist/src/validate-formal-hardening.js "${{ steps.policy.outputs.formal_path }}"
+      - name: Upload immutable formal manifest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: website-qa-formal-${{ steps.policy.outputs.evaluation_id }}
+          path: ${{ steps.policy.outputs.formal_path }}
+          if-no-files-found: error
+          retention-days: 14

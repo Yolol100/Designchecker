@@ -1,0 +1,49 @@
+name: vendor-checklist-migration
+
+on:
+  push:
+    branches: ['migration/checklist-parity-20260909']
+    paths:
+      - '.github/workflows/vendor-checklist-migration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Designchecker migration branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: migration/checklist-parity-20260909
+          fetch-depth: 0
+      - name: Checkout frozen Checklist runtime
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Yolol100/Checklist
+          ref: 25bf9fd8ccefdd06cb4e7adf36e3ab332c76b854
+          path: .migration-upstream-checklist
+      - name: Vendor exact compatibility runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf legacy/checklist
+          mkdir -p legacy/checklist
+          cp -a .migration-upstream-checklist/. legacy/checklist/
+          rm -rf legacy/checklist/.git
+          printf '%s\n' '25bf9fd8ccefdd06cb4e7adf36e3ab332c76b854' > legacy/checklist/UPSTREAM-COMMIT
+          rm -rf .migration-upstream-checklist
+      - name: Commit vendored compatibility runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'webactueel-migration-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add legacy/checklist
+          if git diff --cached --quiet; then
+            echo 'No vendoring changes.'
+            exit 0
+          fi
+          git commit -m 'migration: vendor complete frozen Checklist runtime into Designchecker'
+          git push origin HEAD:migration/checklist-parity-20260909

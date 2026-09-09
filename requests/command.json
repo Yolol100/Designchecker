@@ -1,0 +1,16 @@
+{
+  "request_id": "acd-2208-baseline-20260909",
+  "command": "design-baseline",
+  "owner": "design",
+  "project_id": "project-design",
+  "requested_by": "chatgpt-web",
+  "source_context": {
+    "integrity_status": "verified",
+    "project_id": "project-design",
+    "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
+    "source_set_version": "2026-09-08.1-living-master-completion-export",
+    "checked_at": "2026-09-09T12:56:36Z",
+    "selector_ids": ["quality-audit", "evidence-baseline"]
+  },
+  "target": "https://acdcleaning.concept-webactueel-7.com/gebruikte-autos-showroom-en-verkoopklaar-maken/"
+}

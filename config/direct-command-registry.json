@@ -65,6 +65,21 @@
       "trigger_when":"Design owns an accessibility-sensitive component/page decision and automated risk signals can change the design decision or acceptance criteria.",
       "do_not_trigger_when":"The request is a formal WCAG conformance claim or independent browser/AT acceptance; route that acceptance to Website QA.",
       "why":"Find automated accessibility risks as controlled-runtime support evidence, never as a conformance claim."
+    },
+    {
+      "command":"media-audit",
+      "owner":"design",
+      "project_id":"project-design",
+      "tool":"design_media_inventory_visual_audit",
+      "capability":"media-visual-inventory",
+      "executor":{"kind":"cli","name":"media-audit"},
+      "target_type":"public_url",
+      "preconditions":["verified_live_source","selected_source_selector"],
+      "source_selectors":["system-accessibility","quality-audit","evidence-baseline"],
+      "evidence_scope":"Public WordPress media inventory, image download verification, contact-sheet visual evidence and metadata completeness signals. No target writes.",
+      "trigger_when":"A bounded visual inventory of public website images is required to support Design or independent QA review.",
+      "do_not_trigger_when":"The task requires editing media, private assets, rights determination or SEO acceptance without the SEO owner.",
+      "why":"Create inspectable contact sheets and media metadata evidence without changing the target website."
     }
   ]
 }

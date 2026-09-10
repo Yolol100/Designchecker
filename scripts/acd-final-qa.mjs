@@ -23,22 +23,61 @@ for (const item of pages) {
   const page = await context.newPage();
   const pageErrors = [];
   const consoleErrors = [];
-  const failedRequests = [];
+  const failedRequestsRaw = [];
   const badResponses = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
-  page.on('requestfailed', r => failedRequests.push({ url: r.url(), error: r.failure()?.errorText || null }));
-  page.on('response', r => { if (r.status() >= 400) badResponses.push({ url: r.url(), status: r.status(), type: r.request().resourceType() }); });
+  page.on('requestfailed', r => failedRequestsRaw.push({
+    url: r.url(),
+    error: r.failure()?.errorText || null,
+    type: r.resourceType(),
+  }));
+  page.on('response', r => {
+    if (r.status() >= 400) badResponses.push({ url: r.url(), status: r.status(), type: r.request().resourceType() });
+  });
+
+  const probe = await context.request.get(item.link, { maxRedirects: 5, failOnStatusCode: false, timeout: 45000 });
+  const headers = probe.headers();
 
   let nav = null;
+  let navigationError = null;
   try {
-    nav = await page.goto(item.link, { waitUntil: 'networkidle', timeout: 60000 });
-    await page.waitForTimeout(750);
+    nav = await page.goto(item.link, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForTimeout(1500);
   } catch (e) {
+    navigationError = e.message;
     pageErrors.push(`NAV ${e.message}`);
   }
 
-  const headings = await page.locator('h1,h2,h3,h4,h5,h6').evaluateAll(nodes => nodes.map(n => ({ level: Number(n.tagName.slice(1)), text: (n.textContent || '').trim() })));
+  const mediaProbes = [];
+  const failedRequests = [];
+  for (const failure of failedRequestsRaw) {
+    const isAbortedMedia = failure.type === 'media' && failure.error === 'net::ERR_ABORTED';
+    if (!isAbortedMedia) {
+      failedRequests.push(failure);
+      continue;
+    }
+    let status = 0;
+    let probeError = null;
+    try {
+      const media = await context.request.get(failure.url, {
+        headers: { Range: 'bytes=0-1023' },
+        failOnStatusCode: false,
+        timeout: 30000,
+      });
+      status = media.status();
+    } catch (e) {
+      probeError = e.message;
+    }
+    const available = status === 200 || status === 206;
+    mediaProbes.push({ ...failure, status, available, probeError });
+    if (!available) failedRequests.push(failure);
+  }
+
+  const headings = await page.locator('h1,h2,h3,h4,h5,h6').evaluateAll(nodes => nodes.map(n => ({
+    level: Number(n.tagName.slice(1)),
+    text: (n.textContent || '').trim(),
+  })));
   const headingSkips = [];
   for (let i = 1; i < headings.length; i++) {
     if (headings[i].level > headings[i - 1].level + 1) headingSkips.push({ from: headings[i - 1], to: headings[i] });
@@ -46,10 +85,14 @@ for (const item of pages) {
   const mainCount = await page.locator('main').count();
   const h1Count = await page.locator('h1').count();
   const forms = await page.locator('form').count();
-  const jqueryScripts = await page.locator('script[src*="jquery"]').evaluateAll(nodes => nodes.map(n => ({ id: n.id || '', src: n.src, defer: n.hasAttribute('defer'), rocketDefer: n.hasAttribute('data-rocket-defer') })));
+  const jqueryScripts = await page.locator('script[src*="jquery"]').evaluateAll(nodes => nodes.map(n => ({
+    id: n.id || '',
+    src: n.src,
+    defer: n.hasAttribute('defer'),
+    rocketDefer: n.hasAttribute('data-rocket-defer'),
+  })));
   const protectedJquery = jqueryScripts.filter(s => ['jquery-core-js','jquery-migrate-js','jquery-ui-core-js'].includes(s.id));
   const deferredProtectedJquery = protectedJquery.filter(s => s.defer || s.rocketDefer);
-  const headers = nav ? await nav.allHeaders() : {};
   const security = {
     hsts: headers['strict-transport-security'] || null,
     xPoweredBy: headers['x-powered-by'] || null,
@@ -64,7 +107,9 @@ for (const item of pages) {
     id: item.id,
     slug: item.slug,
     url: item.link,
-    status: nav?.status() || 0,
+    status: probe.status(),
+    navigationStatus: nav?.status() || 0,
+    navigationError,
     mainCount,
     h1Count,
     headingSkips,
@@ -72,6 +117,8 @@ for (const item of pages) {
     pageErrors,
     consoleErrors,
     failedRequests,
+    ignoredVerifiedMediaAborts: mediaProbes.filter(x => x.available),
+    mediaProbeFailures: mediaProbes.filter(x => !x.available),
     badResponses,
     protectedJquery,
     deferredProtectedJquery,
@@ -92,6 +139,7 @@ await browser.close();
 const issues = [];
 for (const r of results) {
   if (r.status !== 200) issues.push(`${r.slug}: status ${r.status}`);
+  if (r.navigationError) issues.push(`${r.slug}: browser navigation failed`);
   if (r.mainCount !== 1) issues.push(`${r.slug}: mainCount ${r.mainCount}`);
   if (r.h1Count !== 1) issues.push(`${r.slug}: h1Count ${r.h1Count}`);
   if (r.headingSkips.length) issues.push(`${r.slug}: heading skips ${r.headingSkips.length}`);
@@ -115,12 +163,14 @@ const summary = {
   round,
   publishedPages: results.length,
   pages200: results.filter(r => r.status === 200).length,
+  browserNavigations200: results.filter(r => r.navigationStatus === 200).length,
   pagesWithExactlyOneMain: results.filter(r => r.mainCount === 1).length,
   pagesWithExactlyOneH1: results.filter(r => r.h1Count === 1).length,
   totalHeadingSkips: results.reduce((n, r) => n + r.headingSkips.length, 0),
   totalPageErrors: results.reduce((n, r) => n + r.pageErrors.length, 0),
   totalConsoleErrors: results.reduce((n, r) => n + r.consoleErrors.length, 0),
   totalFailedRequests: results.reduce((n, r) => n + r.failedRequests.length, 0),
+  verifiedMediaAborts: results.reduce((n, r) => n + r.ignoredVerifiedMediaAborts.length, 0),
   totalBadResponses: results.reduce((n, r) => n + r.badResponses.length, 0),
   pagesWithDeferredProtectedJquery: results.filter(r => r.deferredProtectedJquery.length).length,
   pagesWithSecurityHeaderFailures: results.filter(r => !r.security.hsts || r.security.xPoweredBy || r.security.xFrameOptions !== 'SAMEORIGIN' || r.security.xContentTypeOptions !== 'nosniff' || r.security.referrerPolicy !== 'strict-origin-when-cross-origin' || !r.security.permissionsPolicy?.includes('camera=()') || !r.security.permissionsPolicy?.includes('microphone=()')).length,
@@ -129,7 +179,7 @@ const summary = {
 };
 
 const output = {
-  schema_version: 'acd-final-qa/1.0',
+  schema_version: 'acd-final-qa/1.1',
   request: { target: base, round, formsPolicy: 'observe-only; never submit' },
   generated_at: new Date().toISOString(),
   summary,

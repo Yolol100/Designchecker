@@ -51,25 +51,6 @@ export async function withPage<T>(
     await installNetworkGuard(page);
     await page.goto(url.toString(), { waitUntil: 'networkidle', timeout: 45000 });
     await assertPublicTarget(page.url());
-
-    // Runtime-only lazy-load probe: progressively visit the full document so
-    // viewport-triggered images receive the same intersection opportunity as
-    // a real user scrolling the page, then restore the initial viewport.
-    await page.evaluate(async () => {
-      const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-      const step = Math.max(400, Math.floor(window.innerHeight * 0.8));
-      let y = 0;
-      while (y < document.documentElement.scrollHeight) {
-        window.scrollTo(0, y);
-        await sleep(90);
-        y += step;
-      }
-      window.scrollTo(0, document.documentElement.scrollHeight);
-      await sleep(900);
-      window.scrollTo(0, 0);
-      await sleep(250);
-    });
-
     return await run(page);
   } finally {
     await browser?.close();

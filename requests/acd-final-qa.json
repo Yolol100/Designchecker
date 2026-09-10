@@ -1,6 +1,6 @@
 {
   "target": "https://acdcleaning.concept-webactueel-7.com/",
-  "round": "1",
+  "round": "2",
   "forms_policy": "observe-only-never-submit",
-  "notes": "Post-fix independent browser QA; staging noindex intentionally allowed."
+  "notes": "Post-fix independent browser QA; streaming media is availability-probed separately; staging noindex intentionally allowed."
 }

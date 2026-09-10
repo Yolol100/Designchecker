@@ -12,7 +12,7 @@
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "node --test dist/tests/*.test.js",
     "smoke": "node scripts/smoke.mjs",
-    "command": "node scripts/run-command.mjs",
+    "command": "node scripts/acd-phase5-form-e2e.mjs",
     "dev": "tsx src/cli.ts",
     "setup:browsers": "playwright install chromium"
   },

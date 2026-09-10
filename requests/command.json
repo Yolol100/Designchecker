@@ -1,5 +1,5 @@
 {
-  "request_id": "acd-a11y-2208-contrast-retest-20260910",
+  "request_id": "acd-a11y-2208-contrast-uncached-20260910",
   "command": "a11y",
   "owner": "design",
   "project_id": "project-design",
@@ -12,5 +12,5 @@
     "checked_at": "2026-09-10T10:50:00+02:00",
     "selector_ids": ["system-accessibility", "quality-audit"]
   },
-  "target": "https://acdcleaning.concept-webactueel-7.com/gebruikte-autos-showroom-en-verkoopklaar-maken/"
+  "target": "https://acdcleaning.concept-webactueel-7.com/gebruikte-autos-showroom-en-verkoopklaar-maken/?acdqa=20260910-1102"
 }

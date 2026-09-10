@@ -4,15 +4,13 @@
   "private": true,
   "type": "module",
   "description": "Central evidence and command runner for Webactueel specialist skills.",
-  "engines": {
-    "node": ">=22.19.0"
-  },
+  "engines": {"node": ">=22.19.0"},
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "node --test dist/tests/*.test.js",
     "smoke": "node scripts/smoke.mjs",
-    "command": "node scripts/run-command.mjs",
+    "command": "node scripts/acd-nonform-diagnostic.mjs",
     "dev": "tsx src/cli.ts",
     "setup:browsers": "playwright install chromium"
   },
@@ -26,9 +24,5 @@
     "vnu-jar": "^26.9.5",
     "zod": "^4.5.4"
   },
-  "devDependencies": {
-    "@types/node": "^26.4.1",
-    "tsx": "^4.20.5",
-    "typescript": "^7.0.2"
-  }
+  "devDependencies": {"@types/node": "^26.4.1","tsx": "^4.20.5","typescript": "^7.0.2"}
 }

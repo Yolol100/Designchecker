@@ -24,7 +24,7 @@
     "playwright": "^1.61.0",
     "sharp": "^0.35.4",
     "vnu-jar": "^26.9.5",
-    "zod": "^4.5.4"
+    "zod": "^4.6.1"
   },
   "devDependencies": {
     "@types/node": "^26.4.1",

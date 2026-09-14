@@ -1,0 +1,14 @@
+{
+  "request_id": "portfolio-smoke-1401-20260914",
+  "url": "https://andrewbaeten.nl/taxicentralerijswijk/",
+  "level": "standard",
+  "task_type": "live_smoke",
+  "target_environment": "production",
+  "requested_by": "ChatGPT",
+  "source_context": {
+    "project_id":"project-checklist","source_set_version":"2026-09-10.2-reference-navigation-closure","manifest_sha256":"69f84677bdba40b6b0b5490b2532715713cfb95b80f1f81537873037d0da76d3",
+    "selected_sources":["active/00-project-index-en-router.md","active/01-qa-proces-en-severity.md","active/02-frontend-responsive-accessibility.md","active/09-release-go-no-go-en-hertest.md","active/11-evidence-levels-runtime-matrix.md","active/13-release-scoring-and-claim-gates.md","support/82-tool-en-browsermatrix.md","support/83-evidence-manifest-schema.json","support/84-runtime-matrix-schema.json","support/87-master-project-checklist.md","support/88-playwright-axe-adapter.md"],
+    "source_hashes":{"active/00-project-index-en-router.md":"5021928d21e2e689ece4b0a385cd38246a331ca4687302e706c794c9dcc5cd1d","active/01-qa-proces-en-severity.md":"787e2edb7b5bd07daabe2bacc8a91d801ea0561da6bc116be50138e53ed875","active/02-frontend-responsive-accessibility.md":"95eb14ddd6e6ee8975b40299938485ba304acb0f9cb70d002125960f7351ce8b","active/09-release-go-no-go-en-hertest.md":"e071152974ab72cbeb7055c9bc6dcd07872fa26ca0acd8d1f7a130cff2cafde0","active/11-evidence-levels-runtime-matrix.md":"a499f579c2925dbc172d6dca880f7447f887638662c2e7d9c00357e7c3eddbd7","active/13-release-scoring-and-claim-gates.md":"1fd2ef48d684924a8dc29da4bf787c2b028fef7d374ae1f26eef020988ec8791","support/82-tool-en-browsermatrix.md":"413dc130d699633ca575c092f9d57cbbd66d4a52e6c481fbc1f75e392ded9107","support/83-evidence-manifest-schema.json":"4a732c3010d64cea159de367ba9f326d38f89b98fffb8c8aa2afb6426f2fe62d","support/84-runtime-matrix-schema.json":"9c6c6660e02193d126efbeb75b4943c5d7a82c1401852e69f6b72b9ee4576eb2","support/87-master-project-checklist.md":"921b09229dd2df1bc602504e30ef51fa6cfd9ea4a3009541d9c97323e98762bb","support/88-playwright-axe-adapter.md":"5d9991ab37cfddf316c148ffcc13745bdf3aec955da94d71f4423ca22741e5b8"},
+    "selection_basis":"Representative public portfolio live browser smoke after completed WordPress data migration; desktop/mobile responsive verification."
+  }
+}

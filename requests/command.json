@@ -1,9 +1,9 @@
 {
-  "request_id": "portfolio-visual-4092-20260914",
+  "request_id": "portfolio-visual-1401-r2-20260914",
   "command": "design-baseline",
   "owner": "design",
   "project_id": "project-design",
-  "target": "https://andrewbaeten.nl/seo-image-assistant/",
+  "target": "https://andrewbaeten.nl/taxicentralerijswijk/",
   "requested_by": "chatgpt-web",
   "source_context": {
     "integrity_status": "verified",

@@ -55,10 +55,10 @@
       ],
       "owner": "website-qa-checklist",
       "project_id": "project-checklist",
-      "runtime_status": "migration-evidence-parity-pending",
-      "execution_status": "legacy-active-until-formal-evidence-parity",
-      "reason": "This is the only repository consolidation in Designchecker. Checklist remains active until raw evidence, formal Evidence Manifest finalization, request/run correlation, privacy guards and Website QA acceptance are proven equivalent."
+      "runtime_status": "parity-proven-controller-cutover-live",
+      "execution_status": "designchecker-active-checklist-rollback-only",
+      "reason": "Designchecker PR #27 proved the frozen Checklist parity route on exact head 96dc86f55e690e8818820d620aee000b9c2568c9 with green ci, Checklist migration parity and Toolkit Contract checks. Yolol100/Orchestrator now routes the checklist adapter to Yolol100/Designchecker .github/workflows/run-website-qa.yml. Keep Yolol100/Checklist as rollback-only until the documented regression period completes and the central controller package has been synchronized and revalidated."
     }
   ],
-  "policy": "Historical routing map only. Current direct execution is Design-owned; SEO, Elementor and Leads use their registered owner repositories. Removed standalone legacy scripts have no active callers."
+  "policy": "Historical routing map only. Current direct execution is Design-owned; Website QA browser evidence is routed through the proven Designchecker compatibility runtime while Checklist remains rollback-only during the regression window. SEO, Elementor and Leads use their registered owner repositories. Removed standalone legacy scripts have no active callers."
 }

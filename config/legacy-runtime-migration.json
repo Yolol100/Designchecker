@@ -55,10 +55,10 @@
       ],
       "owner": "website-qa-checklist",
       "project_id": "project-checklist",
-      "runtime_status": "parity-proven-controller-cutover-live",
+      "runtime_status": "parity-proven-owner-accepted-controller-cutover-live",
       "execution_status": "designchecker-active-checklist-rollback-only",
-      "reason": "Designchecker PR #27 proved the frozen Checklist parity route on exact head 96dc86f55e690e8818820d620aee000b9c2568c9 with green ci, Checklist migration parity and Toolkit Contract checks. Yolol100/Orchestrator now routes the checklist adapter to Yolol100/Designchecker .github/workflows/run-website-qa.yml. Keep Yolol100/Checklist as rollback-only until the documented regression period completes and the central controller package has been synchronized and revalidated."
+      "reason": "Designchecker PR #27 proved the frozen parity route on exact head 96dc86f55e690e8818820d620aee000b9c2568c9 with green ci, Checklist migration parity and Toolkit Contract checks. On 2026-09-15 website-qa-checklist independently revalidated immutable artifact 10114483062 (SHA-256 495798bc9a3ed2d0a447d7f5b06dd80d95ad359ff679a768e178982c77a8fc08): current Evidence Manifest and Runtime Matrix validators returned VALID, 3/3 required controlled-runtime items passed, findings were empty and mutation_performed was false. This is Source GO for the compatibility/evidence contract only. Yolol100/Orchestrator routes checklist to Yolol100/Designchecker .github/workflows/run-website-qa.yml. Keep Yolol100/Checklist rollback-only until the regression period and remaining archive gates complete."
     }
   ],
-  "policy": "Historical routing map only. Current direct execution is Design-owned; Website QA browser evidence is routed through the proven Designchecker compatibility runtime while Checklist remains rollback-only during the regression window. SEO, Elementor and Leads use their registered owner repositories. Removed standalone legacy scripts have no active callers."
+  "policy": "Historical routing map only. Current direct execution is Design-owned; Website QA browser evidence is routed through the parity-proven, owner-accepted Designchecker compatibility runtime while Checklist remains rollback-only during the regression window. SEO, Elementor and Leads use their registered owner repositories. Removed standalone legacy scripts have no active callers."
 }

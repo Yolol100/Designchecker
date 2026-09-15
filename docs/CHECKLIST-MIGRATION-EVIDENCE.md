@@ -12,11 +12,28 @@ Designchecker PR #27 (`Complete Checklist migration parity in Designchecker`) is
 - `Checklist migration parity` — run `34377479611`;
 - `Toolkit Contract` — run `34377479797`.
 
-The merged runtime contains the immutable Website QA request runner, formal Evidence Manifest finalizer, frozen compatibility source and GET/HEAD-only browser-network hardening.
+The immutable `checklist-migration-parity` artifact is artifact ID `10114483062` with archive SHA-256 `495798bc9a3ed2d0a447d7f5b06dd80d95ad359ff679a768e178982c77a8fc08` and contains `latest.json` plus `formal-ci.json` from exact head `96dc86f55e690e8818820d620aee000b9c2568c9`.
+
+## Website QA owner acceptance
+
+On 2026-09-15, `website-qa-checklist` independently re-read the immutable parity artifact and accepted it as `Source GO` for the migrated compatibility/evidence contract only.
+
+Acceptance evidence:
+
+- current Website-QA `validate_evidence_manifest.py` result: `VALID`;
+- current Website-QA `validate_runtime_matrix.py` result: `VALID`;
+- evidence level: `controlled_runtime`;
+- required runtime-matrix items: `3/3 passed`;
+- findings: none;
+- runner mutation: `false`;
+- raw evidence records GET/HEAD-only public observation, DNS-pinning proxy, blocked WebSockets and blocked Service Workers;
+- the formal manifest preserves explicit limitations and a `conditional_go` audit-fixture release decision rather than claiming production, staging, full WCAG, real-device or user-flow acceptance.
+
+This owner acceptance proves compatibility of the migrated Website-QA evidence route against the frozen public-test scenario. It does **not** prove a production website, customer flow, full accessibility conformance, field-CWV, authenticated behavior, payment flow or release readiness. Repository success remains evidence input; `website-qa-checklist` still owns severity and QA acceptance for each real target.
 
 ## Controller cutover
 
-Live `Yolol100/Orchestrator` now registers adapter `checklist` on `Yolol100/Designchecker` using `.github/workflows/run-website-qa.yml`. This proves the transport cutover has occurred; repository success remains evidence only and `website-qa-checklist` still owns QA acceptance and release decisions.
+Live `Yolol100/Orchestrator` registers adapter `checklist` on `Yolol100/Designchecker` using `.github/workflows/run-website-qa.yml`. With parity plus owner acceptance recorded, this transport cutover is now evidence-backed.
 
 ## Remaining archive gate
 

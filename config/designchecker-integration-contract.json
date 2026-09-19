@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "controller": "webactueel-workflow",
   "runtime_capability": "designchecker-direct",
   "purpose": "Define when, why and how ChatGPT may invoke Designchecker after Skill ownership and live project-source selection are resolved.",
@@ -40,28 +40,50 @@
         "command": "design",
         "for": "rendered-page design inspection",
         "why": "Runtime layout, hierarchy, components or overflow can materially change a Design decision.",
-        "selectors": ["ia-navigation","conversion-forms","ecommerce-checkout","system-accessibility","quality-audit","handoff","design-engineering","evidence-baseline"],
+        "selectors": [
+          "ia-navigation",
+          "conversion-forms",
+          "ecommerce-checkout",
+          "system-accessibility",
+          "quality-audit",
+          "handoff",
+          "design-engineering",
+          "evidence-baseline"
+        ],
         "max_evidence_level": "controlled_runtime"
       },
       {
         "command": "a11y",
         "for": "automated design accessibility risk signals",
         "why": "Automated findings can change component/design acceptance criteria but do not prove WCAG conformance.",
-        "selectors": ["system-accessibility","quality-audit"],
+        "selectors": [
+          "system-accessibility",
+          "quality-audit"
+        ],
         "max_evidence_level": "controlled_runtime"
       },
       {
         "command": "design-baseline",
         "for": "pre-change reproducible visual baseline",
         "why": "Redesign, cleanup, before/after, handoff and claim workflows require evidence before mutation.",
-        "selectors": ["quality-audit","handoff","design-engineering","evidence-baseline","claims-scoring"],
+        "selectors": [
+          "quality-audit",
+          "handoff",
+          "design-engineering",
+          "evidence-baseline",
+          "claims-scoring"
+        ],
         "max_evidence_level": "controlled_runtime"
       },
       {
         "command": "design-diff",
         "for": "same-scope before/after screenshot comparison",
         "why": "Quantifies candidate visual regression or change from persisted Design evidence while leaving quality judgement with Design.",
-        "selectors": ["quality-audit","evidence-baseline","claims-scoring"],
+        "selectors": [
+          "quality-audit",
+          "evidence-baseline",
+          "claims-scoring"
+        ],
         "max_evidence_level": "source"
       }
     ]
@@ -72,11 +94,24 @@
     "evidence_pattern": "results/evidence/<request_id>/",
     "evidence_reuse_rule": "Cross-command screenshot inputs must be existing files under results/evidence/; arbitrary repository paths are rejected.",
     "workflow": ".github/workflows/command.yml",
-    "source_context_required": ["integrity_status","project_id","manifest_file_id","source_set_version","checked_at"],
+    "source_context_required": [
+      "integrity_status",
+      "project_id",
+      "manifest_file_id",
+      "source_set_version",
+      "checked_at"
+    ],
     "design_source_selector_required": true,
     "writes_to_target": false,
     "additional_account_required": false,
     "api_key_required": false,
-    "mcp_required": false
+    "mcp_required": false,
+    "request_branch_pattern": "runtime/**",
+    "artifact_transport": "GitHub Actions uploads results/ as a run-scoped artifact; the owning skill reads workflow run -> artifact -> result JSON/screenshots before interpreting evidence. A green workflow alone is transport evidence, not a visual finding.",
+    "artifact_name_pattern": "designchecker-command-<workflow_run_number>",
+    "artifact_retention_days": 7,
+    "result_pattern_scope": "inside_artifact",
+    "evidence_pattern_scope": "inside_artifact",
+    "prospect_evidence_committed_to_main": false
   }
 }

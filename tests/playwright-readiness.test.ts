@@ -11,7 +11,7 @@ test('visual readiness policy avoids networkidle and waits for stable visual pre
     load: 'best-effort',
     fonts: 'ready',
     animationFrames: 2,
-    lazyContentHydration: 'scroll-pass'
+    lazyContentHydration: 'opt-in-scroll-pass'
   });
 
   const [browserSource, designSource] = await Promise.all([
@@ -28,4 +28,6 @@ test('visual readiness policy avoids networkidle and waits for stable visual pre
   assert.match(browserSource, /window\.scrollTo/);
   assert.match(designSource, /navigateReadOnlyPage/);
   assert.match(designSource, /hydrateLazyContentForVisualCapture\(page\)/);
+  assert.match(designSource, /hydrateLazyContent = false/);
+  assert.match(designSource, /enabled: false/);
 });

@@ -27,5 +27,8 @@ test('visual readiness policy avoids networkidle and waits for stable visual pre
   assert.match(browserSource, /hydrateLazyContentForVisualCapture/);
   assert.match(browserSource, /window\.scrollTo/);
   assert.match(designSource, /navigateReadOnlyPage/);
+  assert.match(designSource, /detectPublicPageAccessBarrier\(page\)/);
+  assert.match(designSource, /status: blocked \? 'partial' : 'ok'/);
+  assert.match(designSource, /blockedViewportCount > 0 \? 'partial' : 'ok'/);
   assert.match(designSource, /hydrateLazyContentForVisualCapture\(page\)/);
 });

@@ -10,6 +10,60 @@ export const VISUAL_READINESS_POLICY = {
   lazyContentHydration: 'scroll-pass'
 } as const;
 
+export type PublicPageAccessBarrierKind = 'cloudflare_challenge' | 'access_denied' | 'bot_verification';
+
+export interface PublicPageAccessBarrier {
+  blocked: boolean;
+  kind: PublicPageAccessBarrierKind | null;
+  signals: string[];
+  url: string;
+  title: string;
+}
+
+export function classifyPublicPageAccessBarrier(input: { title: string; bodyText: string; html: string; url: string }): PublicPageAccessBarrier {
+  const title = input.title.trim().toLowerCase();
+  const body = input.bodyText.replace(/\s+/g, ' ').trim().toLowerCase();
+  const html = input.html.toLowerCase();
+  const signals: string[] = [];
+
+  const hasCloudflareMarker = /cf-chl|challenges\.cloudflare\.com|cloudflare/.test(html) || body.includes('cloudflare');
+  const hasSecurityVerification = /performing security verification|verify you are human|checking your browser|enable javascript and cookies to continue/.test(body);
+  if ((title.includes('just a moment') && hasSecurityVerification) || (hasCloudflareMarker && hasSecurityVerification)) {
+    if (title.includes('just a moment')) signals.push('title:just-a-moment');
+    if (hasSecurityVerification) signals.push('body:security-verification');
+    if (hasCloudflareMarker) signals.push('provider:cloudflare');
+    return { blocked: true, kind: 'cloudflare_challenge', signals, url: input.url, title: input.title };
+  }
+
+  const hasAccessDenied = title.includes('access denied') || /\baccess denied\b/.test(body);
+  const hasGatewayMarker = /akamai|reference #|request could not be satisfied|cloudfront/.test(body + ' ' + html);
+  if (hasAccessDenied && hasGatewayMarker) {
+    signals.push('access-denied');
+    signals.push('gateway-or-waf-marker');
+    return { blocked: true, kind: 'access_denied', signals, url: input.url, title: input.title };
+  }
+
+  const hasBotVerification = /verify you are human|checking your browser|security verification/.test(body);
+  const hasChallengeMarker = /captcha|challenge|bot verification|turnstile/.test(body + ' ' + html);
+  if (hasBotVerification && hasChallengeMarker) {
+    signals.push('bot-verification');
+    signals.push('challenge-marker');
+    return { blocked: true, kind: 'bot_verification', signals, url: input.url, title: input.title };
+  }
+
+  return { blocked: false, kind: null, signals: [], url: input.url, title: input.title };
+}
+
+export async function detectPublicPageAccessBarrier(page: Page): Promise<PublicPageAccessBarrier> {
+  const snapshot = await page.evaluate(() => ({
+    title: document.title,
+    bodyText: (document.body?.innerText ?? '').slice(0, 12000),
+    html: (document.documentElement?.outerHTML ?? '').slice(0, 30000),
+    url: location.href
+  }));
+  return classifyPublicPageAccessBarrier(snapshot);
+}
+
 export function isReadOnlyNetworkMethod(method: string): boolean {
   return method.toUpperCase() === 'GET' || method.toUpperCase() === 'HEAD';
 }

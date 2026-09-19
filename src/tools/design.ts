@@ -13,8 +13,28 @@ const DEFAULT_VIEWPORTS: ViewportSpec[] = [
   { name: 'mobile', width: 390, height: 844 }
 ];
 
+export const SOCIAL_HOSTS = [
+  'instagram.com',
+  'facebook.com',
+  'linkedin.com',
+  'tiktok.com',
+  'youtube.com',
+  'youtu.be',
+  'x.com',
+  'twitter.com',
+  'threads.net',
+  'threads.com',
+  'pinterest.com',
+  'snapchat.com'
+] as const;
+
+export function isKnownSocialHostname(hostname: string) {
+  const normalized = hostname.toLowerCase().replace(/^www\./, '');
+  return SOCIAL_HOSTS.some((host) => normalized === host || normalized.endsWith(`.\${host}`));
+}
+
 export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
-  const data = await withPage(target, {}, async (page) => page.evaluate(() => {
+  const data = await withPage(target, {}, async (page) => page.evaluate((socialHosts) => {
     const rootStyle = getComputedStyle(document.documentElement);
     const rootVars: Record<string, string> = {};
     for (let i = 0; i < rootStyle.length; i += 1) {
@@ -32,6 +52,35 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       const style = getComputedStyle(el);
       return { tag: el.tagName.toLowerCase(), text: (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 100), width: Math.round(rect.width), height: Math.round(rect.height), fontSize: style.fontSize, borderRadius: style.borderRadius, backgroundColor: style.backgroundColor, color: style.color };
     });
+    const links = [...document.querySelectorAll<HTMLAnchorElement>('a[href]')]
+      .filter(visible)
+      .slice(0, 200)
+      .map((el) => {
+        let url: URL | null = null;
+        try {
+          url = new URL(el.href, location.href);
+        } catch {
+          url = null;
+        }
+        if (!url || !['http:', 'https:'].includes(url.protocol)) return null;
+        return {
+          text: (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 140),
+          ariaLabel: (el.getAttribute('aria-label') ?? '').trim().slice(0, 140) || null,
+          href: url.toString(),
+          hostname: url.hostname.toLowerCase(),
+          rel: (el.getAttribute('rel') ?? '').trim() || null
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+    const currentHost = location.hostname.toLowerCase().replace(/^www\./, '');
+    const externalLinks = links.filter((link) => {
+      const host = link.hostname.replace(/^www\./, '');
+      return host !== currentHost && !host.endsWith(`.\${currentHost}`);
+    });
+    const socialLinks = externalLinks.filter((link) => {
+      const host = link.hostname.replace(/^www\./, '');
+      return socialHosts.some((socialHost) => host === socialHost || host.endsWith(`.\${socialHost}`));
+    });
     const forms = [...document.querySelectorAll('form')].slice(0, 20).map((form) => ({ fields: form.querySelectorAll('input,select,textarea').length, requiredFields: form.querySelectorAll('[required]').length, submitControls: form.querySelectorAll('button[type="submit"],input[type="submit"]').length }));
     const body = getComputedStyle(document.body);
     return {
@@ -41,13 +90,16 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       rootCssVariables: Object.fromEntries(Object.entries(rootVars).slice(0, 150)),
       body: { fontFamily: body.fontFamily, fontSize: body.fontSize, lineHeight: body.lineHeight, color: body.color, backgroundColor: body.backgroundColor },
       headings, buttons, forms,
-      counts: { links: document.querySelectorAll('a[href]').length, images: document.images.length, dialogs: document.querySelectorAll('dialog,[role="dialog"]').length, landmarks: document.querySelectorAll('main,nav,header,footer,aside,[role="main"],[role="navigation"]').length },
+      links,
+      externalLinks,
+      socialLinks,
+      counts: { links: document.querySelectorAll('a[href]').length, visibleLinksCaptured: links.length, externalLinksCaptured: externalLinks.length, socialLinksCaptured: socialLinks.length, images: document.images.length, dialogs: document.querySelectorAll('dialog,[role="dialog"]').length, landmarks: document.querySelectorAll('main,nav,header,footer,aside,[role="main"],[role="navigation"]').length },
       viewport: { width: innerWidth, height: innerHeight },
       documentSize: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1
     };
-  }));
-  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered-page inspection only.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'] });
+  }, [...SOCIAL_HOSTS]));
+  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered-page inspection only.', 'Outbound/social-link inventory reflects links present in the rendered DOM; visiting the linked profile is still required to verify current public activity.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'] });
 }
 
 export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS, owner: Owner = 'design', toolName = 'design_capture_baseline') {

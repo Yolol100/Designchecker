@@ -10,7 +10,8 @@ test('visual readiness policy avoids networkidle and waits for stable visual pre
     body: 'visible',
     load: 'best-effort',
     fonts: 'ready',
-    animationFrames: 2
+    animationFrames: 2,
+    lazyContentHydration: 'scroll-pass'
   });
 
   const [browserSource, designSource] = await Promise.all([
@@ -23,5 +24,8 @@ test('visual readiness policy avoids networkidle and waits for stable visual pre
   assert.match(browserSource, /waitUntil: 'domcontentloaded'/);
   assert.match(browserSource, /locator\('body'\)\.waitFor/);
   assert.match(browserSource, /fonts\.ready/);
+  assert.match(browserSource, /hydrateLazyContentForVisualCapture/);
+  assert.match(browserSource, /window\.scrollTo/);
   assert.match(designSource, /navigateReadOnlyPage/);
+  assert.match(designSource, /hydrateLazyContentForVisualCapture\(page\)/);
 });

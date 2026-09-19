@@ -152,3 +152,10 @@ test('runtime branch cleanup is default-branch controlled and cannot delete arbi
   assert.doesNotMatch(cleanup, /actions\/checkout/);
   assert.doesNotMatch(cleanup, /OUTREACH_|PASSWORD|SECRET_/);
 });
+
+
+test('runtime browser setup avoids reinstalling OS dependencies on every Design command', () => {
+  const workflow = readFileSync(path.join(process.cwd(), '.github/workflows/command.yml'), 'utf8');
+  assert.match(workflow, /npx playwright install chromium/);
+  assert.doesNotMatch(workflow, /playwright install --with-deps chromium/);
+});

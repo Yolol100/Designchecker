@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "controller": "webactueel-workflow",
   "runtime_capability": "designchecker-direct",
   "purpose": "Define when, why and how ChatGPT may invoke Designchecker after Skill ownership and live project-source selection are resolved.",
@@ -112,6 +112,8 @@
     "artifact_retention_days": 7,
     "result_pattern_scope": "inside_artifact",
     "evidence_pattern_scope": "inside_artifact",
-    "prospect_evidence_committed_to_main": false
+    "prospect_evidence_committed_to_main": false,
+    "runtime_branch_cleanup": ".github/workflows/runtime-cleanup.yml deletes only runtime/** branches after webactueel-command completes; artifact evidence remains available for readback.",
+    "runtime_branch_cleanup_required": true
   }
 }

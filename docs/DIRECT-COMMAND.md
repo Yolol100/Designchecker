@@ -14,8 +14,9 @@ Dit is de standaarduitvoering voor normale ChatGPT Web. Geen MCP, tunnel, API-ke
 8. `scripts/run-command.mjs` valideert opnieuw owner, project, commandstatus, bronfreshness, manifestidentiteit, selectors en preconditions.
 9. De geselecteerde target-read-only capability draait op GitHub Actions; browserloze commands installeren geen Chromium.
 10. GitHub Actions uploadt `results/` als tijdelijk artifact `designchecker-command-<run_number>` met 7 dagen retentie. `results/<request_id>.json` en eventuele screenshots onder `results/evidence/<request_id>/` bestaan binnen dat artifact en worden niet naar `main` gecommit.
-11. De owning Skill leest eerst workflowstatus én het artifact terug. Een groene workflow bewijst alleen dat de runtime slaagde; een visuele claim vereist ook de daadwerkelijke screenshot-/render-evidence.
-12. De owning Skill interpreteert evidence. Website QA bezit onafhankelijke geïntegreerde releaseacceptatie waar vereist.
+11. Na completion verwijdert `.github/workflows/runtime-cleanup.yml` de tijdelijke `runtime/**`-branch. Het 7-daagse artifact blijft beschikbaar voor readback; cleanup verwijdert geen evidence-artifact.
+12. De owning Skill leest eerst workflowstatus én het artifact terug. Een groene workflow bewijst alleen dat de runtime slaagde; een visuele claim vereist ook de daadwerkelijke screenshot-/render-evidence.
+13. De owning Skill interpreteert evidence. Website QA bezit onafhankelijke geïntegreerde releaseacceptatie waar vereist.
 
 ## Design
 

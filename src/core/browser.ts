@@ -64,6 +64,62 @@ export async function detectPublicPageAccessBarrier(page: Page): Promise<PublicP
   return classifyPublicPageAccessBarrier(snapshot);
 }
 
+export interface RenderedPageViability {
+  usable: boolean;
+  reason: 'meaningful_content' | 'insufficient_rendered_content';
+  normalizedTextLength: number;
+  visibleInteractiveCount: number;
+  visibleMediaCount: number;
+  visibleLandmarkCount: number;
+}
+
+export function classifyRenderedPageViability(input: {
+  normalizedTextLength: number;
+  visibleInteractiveCount: number;
+  visibleMediaCount: number;
+  visibleLandmarkCount: number;
+}): RenderedPageViability {
+  const meaningful =
+    input.normalizedTextLength >= 40 ||
+    input.visibleInteractiveCount > 0 ||
+    input.visibleMediaCount > 0;
+
+  return {
+    usable: meaningful,
+    reason: meaningful ? 'meaningful_content' : 'insufficient_rendered_content',
+    normalizedTextLength: input.normalizedTextLength,
+    visibleInteractiveCount: input.visibleInteractiveCount,
+    visibleMediaCount: input.visibleMediaCount,
+    visibleLandmarkCount: input.visibleLandmarkCount
+  };
+}
+
+export async function assessRenderedPageViability(page: Page): Promise<RenderedPageViability> {
+  const metrics = await page.evaluate(() => {
+    const visible = (el: Element) => {
+      const style = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || '1') > 0 && rect.width > 0 && rect.height > 0;
+    };
+    const text = (document.body?.innerText ?? '').replace(/\s+/g, ' ').trim();
+    const interactive = [...document.querySelectorAll('a[href],button,input,select,textarea,[role="button"]')].filter(visible);
+    const media = [...document.querySelectorAll('img,video,canvas,svg,picture')].filter((el) => {
+      if (!visible(el)) return false;
+      if (el instanceof HTMLImageElement) return el.complete && el.naturalWidth > 0 && el.naturalHeight > 0;
+      if (el instanceof HTMLVideoElement) return el.readyState > 0 || Boolean(el.poster);
+      return true;
+    });
+    const landmarks = [...document.querySelectorAll('main,nav,header,footer,aside,[role="main"],[role="navigation"]')].filter(visible);
+    return {
+      normalizedTextLength: text.length,
+      visibleInteractiveCount: interactive.length,
+      visibleMediaCount: media.length,
+      visibleLandmarkCount: landmarks.length
+    };
+  });
+  return classifyRenderedPageViability(metrics);
+}
+
 export function isReadOnlyNetworkMethod(method: string): boolean {
   return method.toUpperCase() === 'GET' || method.toUpperCase() === 'HEAD';
 }

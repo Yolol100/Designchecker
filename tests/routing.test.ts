@@ -57,6 +57,9 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.equal(direct.api_key_required, false);
   assert.equal(direct.additional_account_required, false);
   assert.equal(direct.source_integrity_required, true);
+  assert.match(direct.transport, /runtime\/\*\*/);
+  assert.match(direct.transport, /artifact/i);
+  assert.doesNotMatch(direct.transport, /commits results/i);
   const runtimeCapability = capabilityMap.get('designchecker-direct') as any;
   assert.ok(runtimeCapability);
   assert.equal(runtimeCapability.mcp_required, false);
@@ -108,6 +111,10 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.ok(diffRoute.preconditions.includes('input_under_results_evidence'));
   assert.equal(integration.design.manifest_file_id, (bindingMap.get('project-design') as any).manifest_file_id);
   assert.equal(integration.execution.evidence_pattern, 'results/evidence/<request_id>/');
+  assert.equal(integration.execution.request_branch_pattern, 'runtime/**');
+  assert.match(integration.execution.artifact_transport, /artifact/i);
+  assert.equal(integration.execution.artifact_retention_days, 7);
+  assert.equal(integration.execution.prospect_evidence_committed_to_main, false);
   assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
 });
 

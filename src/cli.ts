@@ -29,7 +29,7 @@ async function main() {
     case 'links': result = await checkLinks(required(args[0], 'URL'), 40, owner ?? 'seo', tool ?? 'seo_check_links'); break;
     case 'performance': result = await runLighthouse(required(args[0], 'URL'), owner ?? 'website-qa-checklist', tool ?? 'performance_lighthouse'); break;
     case 'html': result = await validateHtml(required(args[0], 'URL'), owner ?? 'website-qa-checklist', tool ?? 'html_validate_url'); break;
-    case 'baseline': result = await captureDesignBaseline(required(args[0], 'URL'), required(args[1], 'output directory')); break;
+    case 'baseline': result = await captureDesignBaseline(required(args[0], 'URL'), required(args[1], 'output directory'), undefined, 'design', 'design_capture_baseline', args.includes('--hydrate-lazy')); break;
     case 'diff': result = await compareScreenshots(required(args[0], 'before image'), required(args[1], 'after image'), required(args[2], 'diff image')); break;
     default: throw new Error(`Unknown command: ${command}`);
   }

@@ -4,7 +4,7 @@ import { chromium } from 'playwright';
 import { evidence } from '../core/evidence.js';
 import { STABLE_SCREENSHOT_OPTIONS, SCREENSHOT_STABILITY_NOTE } from '../core/screenshot.js';
 import { assertSafeTarget } from '../core/url.js';
-import { detectPublicPageAccessBarrier, hydrateLazyContentForVisualCapture, installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
+import { assessRenderedPageViability, detectPublicPageAccessBarrier, hydrateLazyContentForVisualCapture, installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
 import type { Owner, ViewportSpec } from '../core/types.js';
 
 const DEFAULT_VIEWPORTS: ViewportSpec[] = [
@@ -133,6 +133,12 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
         accessBarrier
       };
     }
+    let renderViability = await assessRenderedPageViability(page);
+    if (!renderViability.usable) {
+      await hydrateLazyContentForVisualCapture(page);
+      renderViability = await assessRenderedPageViability(page);
+    }
+
     const rendered = await page.evaluate((socialHosts) => {
     const rootStyle = getComputedStyle(document.documentElement);
     const rootVars: Record<string, string> = {};
@@ -214,6 +220,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       accessStatus: 'ok' as const,
       currentUrl: page.url(),
       accessBarrier: null,
+      renderViability,
       ...rendered,
       structuredSocialLinks,
       socialLinkCandidates: [...socialLinkCandidates.values()],
@@ -225,14 +232,16 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
     };
   });
   const blocked = data.accessStatus === 'blocked';
+  const unusableRender = !blocked && data.renderViability?.usable === false;
   return evidence({
     owner,
     tool: toolName,
     target,
-    status: blocked ? 'partial' : 'ok',
+    status: blocked || unusableRender ? 'partial' : 'ok',
     data,
     limits: [
       ...(blocked ? ['Access/security interstitial detected; rendered prospect evidence is blocked and must remain unverified.'] : []),
+      ...(unusableRender ? ['Controlled render contains insufficient meaningful visible content after a bounded hydration retry; treat page-level visual evidence as unverified and do not infer a prospect site problem from the empty render.'] : []),
       'Rendered-page inspection plus official-site JSON-LD identity-link inspection only.',
       'Social candidates may come from visible rendered anchors or Organization-like JSON-LD sameAs values whose url/@id resolves to the inspected site. Visiting the linked profile is still required to verify current public activity.',
       'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'
@@ -262,24 +271,28 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
         continue;
       }
       const hydration = await hydrateLazyContentForVisualCapture(page);
+      const renderViability = await assessRenderedPageViability(page);
       await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
       const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
-      captures.push({ viewport, file, state, hydration, accessBarrier: null });
+      captures.push({ viewport, file, state, hydration, accessBarrier: null, renderViability });
       await context.close();
     }
   } finally {
     await browser.close();
   }
   const blockedViewportCount = captures.filter((capture) => (capture.accessBarrier as { blocked?: boolean } | null)?.blocked).length;
+  const unusableViewportCount = captures.filter((capture) => (capture.renderViability as { usable?: boolean } | undefined)?.usable === false).length;
   const accessStatus = blockedViewportCount === 0 ? 'ok' : blockedViewportCount === captures.length ? 'blocked' : 'partial';
+  const renderStatus = unusableViewportCount === 0 ? 'ok' : unusableViewportCount === captures.length ? 'unverified' : 'partial';
   return evidence({
     owner,
     tool: toolName,
     target,
-    status: blockedViewportCount > 0 ? 'partial' : 'ok',
-    data: { outputDir, captures, accessStatus, blockedViewportCount, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY },
+    status: blockedViewportCount > 0 || unusableViewportCount > 0 ? 'partial' : 'ok',
+    data: { outputDir, captures, accessStatus, blockedViewportCount, renderStatus, unusableViewportCount, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY },
     limits: [
       ...(blockedViewportCount > 0 ? ['One or more viewport captures hit an access/security interstitial; those screenshots are barrier evidence, not prospect design evidence.'] : []),
+      ...(unusableViewportCount > 0 ? ['One or more viewport captures contain insufficient meaningful visible content after bounded hydration; those captures are runtime limitation evidence and cannot support a negative prospect/site claim.'] : []),
       'Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.',
       'A bounded scroll pass runs before capture so lazy and scroll-triggered content can render; virtualized or nested scroll containers can still require a targeted check.',
       SCREENSHOT_STABILITY_NOTE

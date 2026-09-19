@@ -4,7 +4,7 @@ import { chromium } from 'playwright';
 import { evidence } from '../core/evidence.js';
 import { STABLE_SCREENSHOT_OPTIONS, SCREENSHOT_STABILITY_NOTE } from '../core/screenshot.js';
 import { assertSafeTarget } from '../core/url.js';
-import { installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
+import { hydrateLazyContentForVisualCapture, installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
 import type { Owner, ViewportSpec } from '../core/types.js';
 
 const DEFAULT_VIEWPORTS: ViewportSpec[] = [
@@ -227,14 +227,15 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
       await installNetworkGuard(page);
       await navigateReadOnlyPage(page, url.toString());
       assertSafeTarget(page.url());
+      const hydration = await hydrateLazyContentForVisualCapture(page);
       const file = path.join(outputDir, `${viewport.name}-${viewport.width}x${viewport.height}.png`);
       await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
       const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
-      captures.push({ viewport, file, state });
+      captures.push({ viewport, file, state, hydration });
       await context.close();
     }
   } finally {
     await browser.close();
   }
-  return evidence({ owner, tool: toolName, target, data: { outputDir, captures, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.', SCREENSHOT_STABILITY_NOTE] });
+  return evidence({ owner, tool: toolName, target, data: { outputDir, captures, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.', 'A bounded scroll pass runs before capture so lazy and scroll-triggered content can render; virtualized or nested scroll containers can still require a targeted check.', SCREENSHOT_STABILITY_NOTE] });
 }

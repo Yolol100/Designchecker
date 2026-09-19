@@ -30,7 +30,7 @@ export const SOCIAL_HOSTS = [
 
 export function isKnownSocialHostname(hostname: string) {
   const normalized = hostname.toLowerCase().replace(/^www\./, '');
-  return SOCIAL_HOSTS.some((host) => normalized === host || normalized.endsWith(`.\${host}`));
+  return SOCIAL_HOSTS.some((host) => normalized === host || normalized.endsWith('.' + host));
 }
 
 export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
@@ -75,11 +75,11 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
     const currentHost = location.hostname.toLowerCase().replace(/^www\./, '');
     const externalLinks = links.filter((link) => {
       const host = link.hostname.replace(/^www\./, '');
-      return host !== currentHost && !host.endsWith(`.\${currentHost}`);
+      return host !== currentHost && !host.endsWith('.' + currentHost);
     });
     const socialLinks = externalLinks.filter((link) => {
       const host = link.hostname.replace(/^www\./, '');
-      return socialHosts.some((socialHost) => host === socialHost || host.endsWith(`.\${socialHost}`));
+      return socialHosts.some((socialHost) => host === socialHost || host.endsWith('.' + socialHost));
     });
     const forms = [...document.querySelectorAll('form')].slice(0, 20).map((form) => ({ fields: form.querySelectorAll('input,select,textarea').length, requiredFields: form.querySelectorAll('[required]').length, submitControls: form.querySelectorAll('button[type="submit"],input[type="submit"]').length }));
     const body = getComputedStyle(document.body);

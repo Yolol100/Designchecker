@@ -1,6 +1,14 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { assertPublicTarget } from './url.js';
 
+export const VISUAL_READINESS_POLICY = {
+  navigation: 'domcontentloaded',
+  body: 'visible',
+  load: 'best-effort',
+  fonts: 'ready',
+  animationFrames: 2
+} as const;
+
 export function isReadOnlyNetworkMethod(method: string): boolean {
   return method.toUpperCase() === 'GET' || method.toUpperCase() === 'HEAD';
 }
@@ -33,6 +41,21 @@ export async function installNetworkGuard(page: Page): Promise<void> {
   });
 }
 
+export async function waitForVisualReadiness(page: Page): Promise<void> {
+  await page.locator('body').waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForLoadState('load', { timeout: 15000 }).catch(() => undefined);
+  await page.evaluate(async () => {
+    const fonts = (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts;
+    if (fonts) await fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+}
+
+export async function navigateReadOnlyPage(page: Page, target: string): Promise<void> {
+  await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await waitForVisualReadiness(page);
+}
+
 export async function withPage<T>(
   target: string,
   options: { width?: number; height?: number; bypassCSP?: boolean } = {},
@@ -49,7 +72,7 @@ export async function withPage<T>(
     });
     const page = await context.newPage();
     await installNetworkGuard(page);
-    await page.goto(url.toString(), { waitUntil: 'networkidle', timeout: 45000 });
+    await navigateReadOnlyPage(page, url.toString());
     await assertPublicTarget(page.url());
     return await run(page);
   } finally {

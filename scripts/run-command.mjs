@@ -8,6 +8,8 @@ const registry = JSON.parse(fs.readFileSync('config/direct-command-registry.json
 const sourceBindings = JSON.parse(fs.readFileSync('config/project-source-bindings.json', 'utf8'));
 const request = JSON.parse(fs.readFileSync(requestPath, 'utf8'));
 
+const MAX_PUBLIC_TARGETS_PER_RUN = 25;
+
 if (request.enabled === false) {
   console.log('Command disabled; nothing to run.');
   process.exit(0);
@@ -58,19 +60,31 @@ if (route.preconditions.includes('selected_source_selector')) {
   if (matched.length === 0) throw new Error(`No selected source selector is valid for ${command}/${owner}.`);
 }
 
-const target = request.target ? String(request.target) : null;
+let targets = [];
 let beforePath = null;
 let afterPath = null;
-if (route.target_type === 'public_url' && !target) throw new Error('target is required for this command.');
-if (route.target_type === 'repo_evidence_pair') {
-  beforePath = assertRepoEvidencePath(request.before_path, 'before_path');
-  afterPath = assertRepoEvidencePath(request.after_path, 'after_path');
+if (route.target_type === 'public_url') {
+  if (request.target && request.targets) throw new Error('Use either target or targets, not both.');
+  if (request.targets !== undefined && !Array.isArray(request.targets)) throw new Error('targets must be an array.');
+  targets = Array.isArray(request.targets)
+    ? request.targets.map((value) => String(value).trim()).filter(Boolean)
+    : [String(required(request.target, 'target')).trim()];
+  if (targets.length < 1 || targets.length > MAX_PUBLIC_TARGETS_PER_RUN) {
+    throw new Error(`public URL batch must contain 1-${MAX_PUBLIC_TARGETS_PER_RUN} targets.`);
+  }
+  if (new Set(targets).size !== targets.length) throw new Error('public URL batch targets must be unique.');
+} else if (route.target_type === 'repo_evidence_pair') {
+  if (command === 'design-diff') {
+    beforePath = assertRepoEvidencePath(request.before_path, 'before_path');
+    afterPath = assertRepoEvidencePath(request.after_path, 'after_path');
+  } else {
+    throw new Error('repo_evidence_pair is only supported for design-diff.');
+  }
 }
 
 const evidenceRoot = path.join('results', 'evidence', requestId);
 fs.mkdirSync(evidenceRoot, { recursive: true });
 const startedAt = new Date().toISOString();
-let child;
 const common = {
   encoding: 'utf8',
   maxBuffer: 30 * 1024 * 1024,
@@ -81,33 +95,70 @@ const common = {
   }
 };
 
-if (command === 'design-baseline') {
-  const baselineDir = path.join(evidenceRoot, 'baseline');
-  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
-} else if (command === 'design-diff') {
-  const diffPath = path.join(evidenceRoot, 'visual-diff.png');
-  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, beforePath, afterPath, diffPath], common);
+const parseEvidence = (child) => {
+  try {
+    if (child.stdout?.trim()) return JSON.parse(child.stdout);
+  } catch {
+    return { raw_stdout: child.stdout };
+  }
+  return null;
+};
+
+const runPublicTarget = (target, index, total) => {
+  let child;
+  if (command === 'design-baseline') {
+    const baselineDir = total === 1
+      ? path.join(evidenceRoot, 'baseline')
+      : path.join(evidenceRoot, 'baseline', String(index + 1).padStart(3, '0'));
+    child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
+  } else {
+    child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);
+  }
+  return {
+    index,
+    target,
+    status: child.status === 0 ? 'success' : 'failed',
+    exit_code: child.status,
+    evidence: parseEvidence(child),
+    stderr: child.stderr?.trim() || null
+  };
+};
+
+let items = [];
+if (route.target_type === 'public_url') {
+  items = targets.map((target, index) => runPublicTarget(target, index, targets.length));
 } else {
-  child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);
+  const diffPath = path.join(evidenceRoot, 'visual-diff.png');
+  const child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, beforePath, afterPath, diffPath], common);
+  items = [{
+    index: 0,
+    target: `${beforePath} -> ${afterPath}`,
+    status: child.status === 0 ? 'success' : 'failed',
+    exit_code: child.status,
+    evidence: parseEvidence(child),
+    stderr: child.stderr?.trim() || null
+  }];
 }
 
-let evidence = null;
-try {
-  if (child.stdout?.trim()) evidence = JSON.parse(child.stdout);
-} catch {
-  evidence = { raw_stdout: child.stdout };
-}
-
-const resolvedTarget = target || `${beforePath} -> ${afterPath}`;
+const failedItems = items.filter((item) => item.status !== 'success');
+const single = items.length === 1;
 const result = {
-  schema_version: 'webactueel-command-result/1.3',
+  schema_version: 'webactueel-command-result/1.4',
   request_id: requestId,
-  status: child.status === 0 ? 'success' : 'failed',
+  status: failedItems.length === 0 ? 'success' : 'failed',
   requested_by: request.requested_by || 'chatgpt-web',
   runtime: registry.runtime,
   runtime_capability: registry.runtime_capability || 'designchecker-direct',
   command,
-  target: resolvedTarget,
+  target: single ? items[0].target : null,
+  targets: route.target_type === 'public_url' ? targets : null,
+  batch: {
+    count: items.length,
+    max_targets_per_run: route.target_type === 'public_url' ? MAX_PUBLIC_TARGETS_PER_RUN : 1,
+    success_count: items.length - failedItems.length,
+    failed_count: failedItems.length,
+    shard_hint: route.target_type === 'public_url' ? 'Use multiple temporary runtime/** branches for larger sets; keep each shard at 25 targets or fewer.' : null
+  },
   resolved_route: {
     controller: 'webactueel-workflow',
     domain_owner: route.owner,
@@ -124,13 +175,20 @@ const result = {
   preconditions: {},
   started_at: startedAt,
   completed_at: new Date().toISOString(),
-  exit_code: child.status,
-  evidence,
-  stderr: child.stderr?.trim() || null
+  exit_code: failedItems[0]?.exit_code ?? 0,
+  evidence: single ? items[0].evidence : items.map((item) => item.evidence),
+  items: single ? undefined : items.map((item) => ({
+    index: item.index,
+    target: item.target,
+    status: item.status,
+    exit_code: item.exit_code,
+    stderr: item.stderr
+  })),
+  stderr: single ? items[0].stderr : (failedItems.length ? 'One or more batch targets failed; inspect items and evidence.' : null)
 };
 
 fs.mkdirSync('results', { recursive: true });
 const resultPath = path.join('results', `${requestId}.json`);
 fs.writeFileSync(resultPath, `${JSON.stringify(result, null, 2)}\n`);
 console.log(resultPath);
-if (child.status !== 0) process.exit(child.status || 1);
+if (failedItems.length) process.exit(failedItems[0].exit_code || 1);

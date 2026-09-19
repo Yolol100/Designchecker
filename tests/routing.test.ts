@@ -159,3 +159,17 @@ test('runtime browser setup avoids reinstalling OS dependencies on every Design 
   assert.match(workflow, /npx playwright install chromium/);
   assert.doesNotMatch(workflow, /playwright install --with-deps chromium/);
 });
+
+
+test('direct command runner supports bounded public-url batches without weakening owner or evidence gates', () => {
+  const runner = readFileSync(path.join(process.cwd(), 'scripts/run-command.mjs'), 'utf8');
+  assert.match(runner, /MAX_PUBLIC_TARGETS_PER_RUN = 25/);
+  assert.match(runner, /Use either target or targets, not both/);
+  assert.match(runner, /targets must be an array/);
+  assert.match(runner, /public URL batch must contain 1-/);
+  assert.match(runner, /public URL batch targets must be unique/);
+  assert.match(runner, /Use multiple temporary runtime\/\*\* branches for larger sets/);
+  assert.match(runner, /schema_version: 'webactueel-command-result\/1\.4'/);
+  assert.match(runner, /Designchecker direct runtime refuses non-Design owner/);
+  assert.match(runner, /source_context\.integrity_status/);
+});

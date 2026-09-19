@@ -33,8 +33,98 @@ export function isKnownSocialHostname(hostname: string) {
   return SOCIAL_HOSTS.some((host) => normalized === host || normalized.endsWith('.' + host));
 }
 
+const ORGANIZATION_SCHEMA_TYPES = new Set([
+  'Organization',
+  'Corporation',
+  'LocalBusiness',
+  'Store',
+  'OnlineStore',
+  'ProfessionalService',
+  'EducationalOrganization',
+  'GovernmentOrganization',
+  'MedicalOrganization',
+  'NGO',
+  'NewsMediaOrganization',
+  'SportsOrganization'
+]);
+
+function normalizeHostname(hostname: string) {
+  return hostname.toLowerCase().replace(/^www\./, '');
+}
+
+function entityReferencesHost(entity: Record<string, unknown>, pageHostname: string) {
+  const pageHost = normalizeHostname(pageHostname);
+  for (const key of ['url', '@id']) {
+    const raw = entity[key];
+    if (typeof raw !== 'string') continue;
+    try {
+      if (normalizeHostname(new URL(raw).hostname) === pageHost) return true;
+    } catch {
+      // Ignore non-URL identity values.
+    }
+  }
+  return false;
+}
+
+function schemaTypeList(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string');
+  return [];
+}
+
+function sameAsList(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string');
+  return [];
+}
+
+export function collectStructuredSocialLinks(jsonLdBlocks: string[], pageHostname: string) {
+  const found = new Map<string, { href: string; hostname: string; source: 'jsonld_sameAs'; schemaType: string }>();
+
+  const visit = (value: unknown) => {
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+
+    const entity = value as Record<string, unknown>;
+    const types = schemaTypeList(entity['@type']);
+    const organizationType = types.find((type) => ORGANIZATION_SCHEMA_TYPES.has(type));
+    if (organizationType && entityReferencesHost(entity, pageHostname)) {
+      for (const raw of sameAsList(entity.sameAs)) {
+        try {
+          const url = new URL(raw);
+          if (!['http:', 'https:'].includes(url.protocol) || !isKnownSocialHostname(url.hostname)) continue;
+          found.set(url.toString(), {
+            href: url.toString(),
+            hostname: url.hostname.toLowerCase(),
+            source: 'jsonld_sameAs',
+            schemaType: organizationType
+          });
+        } catch {
+          // Ignore invalid sameAs values.
+        }
+      }
+    }
+
+    for (const nested of Object.values(entity)) visit(nested);
+  };
+
+  for (const block of jsonLdBlocks) {
+    try {
+      visit(JSON.parse(block));
+    } catch {
+      // Invalid JSON-LD must not fail the page inspection.
+    }
+  }
+
+  return [...found.values()];
+}
+
 export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
-  const data = await withPage(target, {}, async (page) => page.evaluate((socialHosts) => {
+  const data = await withPage(target, {}, async (page) => {
+    const rendered = await page.evaluate((socialHosts) => {
     const rootStyle = getComputedStyle(document.documentElement);
     const rootVars: Record<string, string> = {};
     for (let i = 0; i < rootStyle.length; i += 1) {
@@ -98,8 +188,31 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       documentSize: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1
     };
-  }, [...SOCIAL_HOSTS]));
-  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered-page inspection only.', 'Outbound/social-link inventory reflects links present in the rendered DOM; visiting the linked profile is still required to verify current public activity.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'] });
+    }, [...SOCIAL_HOSTS]);
+
+    const jsonLdBlocks = await page.locator('script[type="application/ld+json"]').allTextContents();
+    const structuredSocialLinks = collectStructuredSocialLinks(jsonLdBlocks, new URL(page.url()).hostname);
+    const socialLinkCandidates = new Map<string, Record<string, unknown>>();
+
+    for (const link of rendered.socialLinks) {
+      socialLinkCandidates.set(link.href, { ...link, source: 'rendered_anchor' });
+    }
+    for (const link of structuredSocialLinks) {
+      if (!socialLinkCandidates.has(link.href)) socialLinkCandidates.set(link.href, link);
+    }
+
+    return {
+      ...rendered,
+      structuredSocialLinks,
+      socialLinkCandidates: [...socialLinkCandidates.values()],
+      counts: {
+        ...rendered.counts,
+        structuredSocialLinksCaptured: structuredSocialLinks.length,
+        socialLinkCandidatesCaptured: socialLinkCandidates.size
+      }
+    };
+  });
+  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered-page inspection plus official-site JSON-LD identity-link inspection only.', 'Social candidates may come from visible rendered anchors or Organization-like JSON-LD sameAs values whose url/@id resolves to the inspected site. Visiting the linked profile is still required to verify current public activity.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'] });
 }
 
 export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS, owner: Owner = 'design', toolName = 'design_capture_baseline') {

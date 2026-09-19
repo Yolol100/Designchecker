@@ -1,9 +1,17 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "runtime": "chatgpt-web-github-direct",
   "runtime_capability": "designchecker-direct",
-  "transport": "ChatGPT GitHub app writes requests/command.json; GitHub Actions executes and commits results/<request_id>.json",
-  "decision_order": ["goal","domain_owner","live_project_manifest","task_source_selectors","evidence_need","direct_command","result_to_owner"],
+  "transport": "ChatGPT GitHub app writes requests/command.json on a temporary runtime/** branch; GitHub Actions executes read-only and uploads results/ as a run-scoped artifact retained for 7 days; the owning skill must read the artifact before making a visual claim; prospect evidence is not committed to main.",
+  "decision_order": [
+    "goal",
+    "domain_owner",
+    "live_project_manifest",
+    "task_source_selectors",
+    "evidence_need",
+    "direct_command",
+    "result_to_owner"
+  ],
   "additional_account_required": false,
   "api_key_required": false,
   "mcp_required": false,
@@ -11,60 +19,107 @@
   "routing_boundary": "Only Design-owned controlled-runtime evidence is selectable here. SEO, Elementor, Leads, Website QA and Programmeren use their own owner repositories and contracts.",
   "routes": [
     {
-      "command":"design",
-      "owner":"design",
-      "project_id":"project-design",
-      "tool":"design_inspect_page",
-      "capability":"design-inspection",
-      "executor":{"kind":"cli","name":"design"},
-      "target_type":"public_url",
-      "preconditions":["verified_live_source","selected_source_selector"],
-      "source_selectors":["ia-navigation","conversion-forms","ecommerce-checkout","system-accessibility","quality-audit","handoff","design-engineering","evidence-baseline"],
-      "trigger_when":"Design owns the task and rendered-page evidence can materially change the design decision, risk or acceptance.",
-      "do_not_trigger_when":"Pure strategy/briefing without runtime evidence, explicit Figma/Canva/Product Design/ImageGen output, implementation-only work or independent QA-only acceptance.",
-      "why":"Collect bounded rendered-page evidence for the Design owner without transferring design ownership."
+      "command": "design",
+      "owner": "design",
+      "project_id": "project-design",
+      "tool": "design_inspect_page",
+      "capability": "design-inspection",
+      "executor": {
+        "kind": "cli",
+        "name": "design"
+      },
+      "target_type": "public_url",
+      "preconditions": [
+        "verified_live_source",
+        "selected_source_selector"
+      ],
+      "source_selectors": [
+        "ia-navigation",
+        "conversion-forms",
+        "ecommerce-checkout",
+        "system-accessibility",
+        "quality-audit",
+        "handoff",
+        "design-engineering",
+        "evidence-baseline"
+      ],
+      "trigger_when": "Design owns the task and rendered-page evidence can materially change the design decision, risk or acceptance.",
+      "do_not_trigger_when": "Pure strategy/briefing without runtime evidence, explicit Figma/Canva/Product Design/ImageGen output, implementation-only work or independent QA-only acceptance.",
+      "why": "Collect bounded rendered-page evidence for the Design owner without transferring design ownership."
     },
     {
-      "command":"design-baseline",
-      "owner":"design",
-      "project_id":"project-design",
-      "tool":"design_capture_baseline",
-      "capability":"browser-baseline",
-      "executor":{"kind":"cli","name":"baseline"},
-      "target_type":"public_url",
-      "preconditions":["verified_live_source","selected_source_selector"],
-      "source_selectors":["quality-audit","handoff","design-engineering","evidence-baseline","claims-scoring"],
-      "trigger_when":"Before redesign, cleanup, before/after comparison, design-engineering handoff or a claim that requires a reproducible visual baseline.",
-      "do_not_trigger_when":"No mutation/comparison/claim is planned or a current valid baseline already covers the exact artifact, version, route, state and viewport scope.",
-      "why":"Create reproducible desktop/tablet/mobile controlled-runtime screenshots before change."
+      "command": "design-baseline",
+      "owner": "design",
+      "project_id": "project-design",
+      "tool": "design_capture_baseline",
+      "capability": "browser-baseline",
+      "executor": {
+        "kind": "cli",
+        "name": "baseline"
+      },
+      "target_type": "public_url",
+      "preconditions": [
+        "verified_live_source",
+        "selected_source_selector"
+      ],
+      "source_selectors": [
+        "quality-audit",
+        "handoff",
+        "design-engineering",
+        "evidence-baseline",
+        "claims-scoring"
+      ],
+      "trigger_when": "Before redesign, cleanup, before/after comparison, design-engineering handoff or a claim that requires a reproducible visual baseline.",
+      "do_not_trigger_when": "No mutation/comparison/claim is planned or a current valid baseline already covers the exact artifact, version, route, state and viewport scope.",
+      "why": "Create reproducible desktop/tablet/mobile controlled-runtime screenshots before change."
     },
     {
-      "command":"design-diff",
-      "owner":"design",
-      "project_id":"project-design",
-      "tool":"design_compare_screenshots",
-      "capability":"visual-diff",
-      "executor":{"kind":"cli","name":"diff"},
-      "target_type":"repo_evidence_pair",
-      "preconditions":["verified_live_source","selected_source_selector","input_under_results_evidence"],
-      "source_selectors":["quality-audit","evidence-baseline","claims-scoring"],
-      "trigger_when":"A before/after or regression comparison is required and two same-dimension screenshots are available from persisted Design evidence.",
-      "do_not_trigger_when":"There is no comparable baseline, dimensions differ by design, or visual change alone cannot answer the user question.",
-      "why":"Quantify candidate visual change from persisted evidence; Design still decides whether the change is intended or better."
+      "command": "design-diff",
+      "owner": "design",
+      "project_id": "project-design",
+      "tool": "design_compare_screenshots",
+      "capability": "visual-diff",
+      "executor": {
+        "kind": "cli",
+        "name": "diff"
+      },
+      "target_type": "repo_evidence_pair",
+      "preconditions": [
+        "verified_live_source",
+        "selected_source_selector",
+        "input_under_results_evidence"
+      ],
+      "source_selectors": [
+        "quality-audit",
+        "evidence-baseline",
+        "claims-scoring"
+      ],
+      "trigger_when": "A before/after or regression comparison is required and two same-dimension screenshots are available from persisted Design evidence.",
+      "do_not_trigger_when": "There is no comparable baseline, dimensions differ by design, or visual change alone cannot answer the user question.",
+      "why": "Quantify candidate visual change from persisted evidence; Design still decides whether the change is intended or better."
     },
     {
-      "command":"a11y",
-      "owner":"design",
-      "project_id":"project-design",
-      "tool":"design_accessibility_risks",
-      "capability":"accessibility-signals",
-      "executor":{"kind":"cli","name":"a11y"},
-      "target_type":"public_url",
-      "preconditions":["verified_live_source","selected_source_selector"],
-      "source_selectors":["system-accessibility","quality-audit"],
-      "trigger_when":"Design owns an accessibility-sensitive component/page decision and automated risk signals can change the design decision or acceptance criteria.",
-      "do_not_trigger_when":"The request is a formal WCAG conformance claim or independent browser/AT acceptance; route that acceptance to Website QA.",
-      "why":"Find automated accessibility risks as controlled-runtime support evidence, never as a conformance claim."
+      "command": "a11y",
+      "owner": "design",
+      "project_id": "project-design",
+      "tool": "design_accessibility_risks",
+      "capability": "accessibility-signals",
+      "executor": {
+        "kind": "cli",
+        "name": "a11y"
+      },
+      "target_type": "public_url",
+      "preconditions": [
+        "verified_live_source",
+        "selected_source_selector"
+      ],
+      "source_selectors": [
+        "system-accessibility",
+        "quality-audit"
+      ],
+      "trigger_when": "Design owns an accessibility-sensitive component/page decision and automated risk signals can change the design decision or acceptance criteria.",
+      "do_not_trigger_when": "The request is a formal WCAG conformance claim or independent browser/AT acceptance; route that acceptance to Website QA.",
+      "why": "Find automated accessibility risks as controlled-runtime support evidence, never as a conformance claim."
     }
   ]
 }

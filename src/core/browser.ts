@@ -7,7 +7,7 @@ export const VISUAL_READINESS_POLICY = {
   load: 'best-effort',
   fonts: 'ready',
   animationFrames: 2,
-  lazyContentHydration: 'scroll-pass'
+  lazyContentHydration: 'opt-in-scroll-pass'
 } as const;
 
 export function isReadOnlyNetworkMethod(method: string): boolean {
@@ -102,6 +102,15 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
     previousHeight = currentHeight;
   }
 
+  await page.evaluate(() => {
+    const root = document.scrollingElement ?? document.documentElement;
+    root.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
+    window.dispatchEvent(new Event('scroll'));
+  });
+  await page.waitForTimeout(350);
   await page.evaluate(async () => {
     window.scrollTo(0, 0);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -110,7 +119,8 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
   const after = await page.evaluate(() => ({
     scrollHeight: document.scrollingElement?.scrollHeight ?? document.documentElement.scrollHeight,
     imageCount: document.images.length,
-    incompleteImageCount: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length
+    incompleteImageCount: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length,
+    scrollY: window.scrollY
   }));
 
   return {
@@ -121,7 +131,8 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
     initialImageCount: before.imageCount,
     finalImageCount: after.imageCount,
     initialIncompleteImageCount: before.incompleteImageCount,
-    finalIncompleteImageCount: after.incompleteImageCount
+    finalIncompleteImageCount: after.incompleteImageCount,
+    finalScrollY: after.scrollY
   };
 }
 

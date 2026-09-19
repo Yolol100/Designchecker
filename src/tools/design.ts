@@ -4,7 +4,7 @@ import { chromium } from 'playwright';
 import { evidence } from '../core/evidence.js';
 import { STABLE_SCREENSHOT_OPTIONS, SCREENSHOT_STABILITY_NOTE } from '../core/screenshot.js';
 import { assertSafeTarget } from '../core/url.js';
-import { hydrateLazyContentForVisualCapture, installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
+import { detectPublicPageAccessBarrier, hydrateLazyContentForVisualCapture, installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
 import type { Owner, ViewportSpec } from '../core/types.js';
 
 const DEFAULT_VIEWPORTS: ViewportSpec[] = [
@@ -124,6 +124,15 @@ export function collectStructuredSocialLinks(jsonLdBlocks: string[], pageHostnam
 
 export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
   const data = await withPage(target, {}, async (page) => {
+    const accessBarrier = await detectPublicPageAccessBarrier(page);
+    if (accessBarrier.blocked) {
+      return {
+        accessStatus: 'blocked' as const,
+        currentUrl: page.url(),
+        title: await page.title(),
+        accessBarrier
+      };
+    }
     const rendered = await page.evaluate((socialHosts) => {
     const rootStyle = getComputedStyle(document.documentElement);
     const rootVars: Record<string, string> = {};
@@ -202,6 +211,9 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
     }
 
     return {
+      accessStatus: 'ok' as const,
+      currentUrl: page.url(),
+      accessBarrier: null,
       ...rendered,
       structuredSocialLinks,
       socialLinkCandidates: [...socialLinkCandidates.values()],
@@ -212,7 +224,20 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       }
     };
   });
-  return evidence({ owner, tool: toolName, target, data, limits: ['Rendered-page inspection plus official-site JSON-LD identity-link inspection only.', 'Social candidates may come from visible rendered anchors or Organization-like JSON-LD sameAs values whose url/@id resolves to the inspected site. Visiting the linked profile is still required to verify current public activity.', 'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'] });
+  const blocked = data.accessStatus === 'blocked';
+  return evidence({
+    owner,
+    tool: toolName,
+    target,
+    status: blocked ? 'partial' : 'ok',
+    data,
+    limits: [
+      ...(blocked ? ['Access/security interstitial detected; rendered prospect evidence is blocked and must remain unverified.'] : []),
+      'Rendered-page inspection plus official-site JSON-LD identity-link inspection only.',
+      'Social candidates may come from visible rendered anchors or Organization-like JSON-LD sameAs values whose url/@id resolves to the inspected site. Visiting the linked profile is still required to verify current public activity.',
+      'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'
+    ]
+  });
 }
 
 export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS, owner: Owner = 'design', toolName = 'design_capture_baseline') {
@@ -227,15 +252,37 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
       await installNetworkGuard(page);
       await navigateReadOnlyPage(page, url.toString());
       assertSafeTarget(page.url());
-      const hydration = await hydrateLazyContentForVisualCapture(page);
+      const accessBarrier = await detectPublicPageAccessBarrier(page);
       const file = path.join(outputDir, `${viewport.name}-${viewport.width}x${viewport.height}.png`);
+      if (accessBarrier.blocked) {
+        await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
+        const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
+        captures.push({ viewport, file, state, hydration: null, accessBarrier });
+        await context.close();
+        continue;
+      }
+      const hydration = await hydrateLazyContentForVisualCapture(page);
       await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
       const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
-      captures.push({ viewport, file, state, hydration });
+      captures.push({ viewport, file, state, hydration, accessBarrier: null });
       await context.close();
     }
   } finally {
     await browser.close();
   }
-  return evidence({ owner, tool: toolName, target, data: { outputDir, captures, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY }, limits: ['Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.', 'A bounded scroll pass runs before capture so lazy and scroll-triggered content can render; virtualized or nested scroll containers can still require a targeted check.', SCREENSHOT_STABILITY_NOTE] });
+  const blockedViewportCount = captures.filter((capture) => (capture.accessBarrier as { blocked?: boolean } | null)?.blocked).length;
+  const accessStatus = blockedViewportCount === 0 ? 'ok' : blockedViewportCount === captures.length ? 'blocked' : 'partial';
+  return evidence({
+    owner,
+    tool: toolName,
+    target,
+    status: blockedViewportCount > 0 ? 'partial' : 'ok',
+    data: { outputDir, captures, accessStatus, blockedViewportCount, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY },
+    limits: [
+      ...(blockedViewportCount > 0 ? ['One or more viewport captures hit an access/security interstitial; those screenshots are barrier evidence, not prospect design evidence.'] : []),
+      'Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.',
+      'A bounded scroll pass runs before capture so lazy and scroll-triggered content can render; virtualized or nested scroll containers can still require a targeted check.',
+      SCREENSHOT_STABILITY_NOTE
+    ]
+  });
 }

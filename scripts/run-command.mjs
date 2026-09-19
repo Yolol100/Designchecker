@@ -22,7 +22,7 @@ const required = (value, label) => {
 
 const assertRepoEvidencePath = (value, label) => {
   const input = String(required(value, label));
-  const normalized = path.normalize(input).replaceAll('\\\\', '/');
+  const normalized = path.normalize(input).replaceAll('\\', '/');
   if (!normalized.startsWith('results/evidence/') || normalized.includes('../')) throw new Error(`${label} must remain under results/evidence/.`);
   if (!fs.existsSync(normalized) || !fs.statSync(normalized).isFile()) throw new Error(`${label} must reference an existing evidence file.`);
   return normalized;
@@ -74,8 +74,12 @@ if (route.target_type === 'public_url') {
   }
   if (new Set(targets).size !== targets.length) throw new Error('public URL batch targets must be unique.');
 } else if (route.target_type === 'repo_evidence_pair') {
-  beforePath = assertRepoEvidencePath(request.before_path, 'before_path');
-  afterPath = assertRepoEvidencePath(request.after_path, 'after_path');
+  if (command === 'design-diff') {
+    beforePath = assertRepoEvidencePath(request.before_path, 'before_path');
+    afterPath = assertRepoEvidencePath(request.after_path, 'after_path');
+  } else {
+    throw new Error('repo_evidence_pair is only supported for design-diff.');
+  }
 }
 
 const evidenceRoot = path.join('results', 'evidence', requestId);

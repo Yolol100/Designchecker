@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.5",
+  "schema_version": "1.6",
   "runtime": "chatgpt-web-github-direct",
   "runtime_capability": "designchecker-direct",
-  "transport": "ChatGPT GitHub app writes requests/command.json on a temporary runtime/** branch; GitHub Actions executes read-only and uploads results/ as a run-scoped artifact retained for 7 days; the owning skill must read the artifact before making a visual claim; prospect evidence is not committed to main.",
+  "transport": "ChatGPT GitHub app writes requests/command.json on a temporary runtime/** branch; GitHub Actions executes read-only and uploads results/ as a run-scoped artifact retained for 7 days; a default-branch workflow_run cleanup deletes the temporary runtime branch after completion; the owning skill must read the artifact before making a visual claim; prospect evidence is not committed to main.",
   "decision_order": [
     "goal",
     "domain_owner",

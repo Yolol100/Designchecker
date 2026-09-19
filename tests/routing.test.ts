@@ -115,6 +115,8 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.match(integration.execution.artifact_transport, /artifact/i);
   assert.equal(integration.execution.artifact_retention_days, 7);
   assert.equal(integration.execution.prospect_evidence_committed_to_main, false);
+  assert.equal(integration.execution.runtime_branch_cleanup_required, true);
+  assert.match(integration.execution.runtime_branch_cleanup, /runtime-cleanup\.yml/);
   assert.deepEqual(integration.decision_order.slice(0, 5), ['goal','domain_owner','live_project_manifest','task_source_selectors','required_evidence_level']);
 });
 
@@ -136,4 +138,17 @@ test('direct command runner enforces Design selectors, evidence paths and Design
   assert.doesNotMatch(runner, /lead_registry_preflight/);
   assert.doesNotMatch(runner, /executor\.kind === 'python'/);
   assert.doesNotMatch(runner, /executor\.kind === 'node'/);
+});
+
+
+test('runtime branch cleanup is default-branch controlled and cannot delete arbitrary branches', () => {
+  const cleanup = readFileSync(path.join(process.cwd(), '.github/workflows/runtime-cleanup.yml'), 'utf8');
+  assert.match(cleanup, /workflow_run:/);
+  assert.match(cleanup, /webactueel-command/);
+  assert.match(cleanup, /startsWith\(github\.event\.workflow_run\.head_branch, 'runtime\/'\)/);
+  assert.match(cleanup, /case "\$RUNTIME_BRANCH"/);
+  assert.match(cleanup, /runtime\/\*/);
+  assert.match(cleanup, /git\/refs\/heads\/\$RUNTIME_BRANCH/);
+  assert.doesNotMatch(cleanup, /actions\/checkout/);
+  assert.doesNotMatch(cleanup, /OUTREACH_|PASSWORD|SECRET_/);
 });

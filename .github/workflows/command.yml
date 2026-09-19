@@ -46,7 +46,7 @@ jobs:
           esac
       - name: Install Chromium when required
         if: steps.runtime.outputs.requires_browser == 'true'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Run requested capability
         id: command
         shell: bash

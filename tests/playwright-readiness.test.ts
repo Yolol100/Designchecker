@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import test from 'node:test';
 import { VISUAL_READINESS_POLICY } from '../src/core/browser.js';
 
@@ -13,8 +14,8 @@ test('visual readiness policy avoids networkidle and waits for stable visual pre
   });
 
   const [browserSource, designSource] = await Promise.all([
-    fs.readFile(new URL('../src/core/browser.ts', import.meta.url), 'utf8'),
-    fs.readFile(new URL('../src/tools/design.ts', import.meta.url), 'utf8')
+    fs.readFile(path.resolve(process.cwd(), 'src/core/browser.ts'), 'utf8'),
+    fs.readFile(path.resolve(process.cwd(), 'src/tools/design.ts'), 'utf8')
   ]);
 
   assert.equal(browserSource.includes("waitUntil: 'networkidle'"), false);

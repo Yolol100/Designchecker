@@ -9,12 +9,12 @@ Dit is de standaarduitvoering voor normale ChatGPT Web. Geen MCP, tunnel, API-ke
 3. Voor source-selector-bound routes bevat `source_context.selector_ids` minimaal één selector die voor het gekozen command is toegestaan.
 4. `config/project-source-bindings.json` vereist het exacte manifest-ID en kan een project bij bronconflict volledig blokkeren.
 5. `config/designchecker-integration-contract.json` bepaalt wanneer Designchecker wel/niet mag worden gekozen en waarom; Designchecker wordt nooit vakowner.
-6. Voor Leads gebeurt Lead Registry-preflight vóór browser-supportbewijs.
-7. ChatGPT schrijft `requests/command.json` via de verbonden GitHub-app.
-8. De push naar `main` triggert `.github/workflows/command.yml`.
-9. `scripts/run-command.mjs` valideert opnieuw owner, project, commandstatus, bronfreshness, manifestidentiteit, selectors en preconditions.
-10. De geselecteerde target-read-only capability draait op GitHub Actions; browserloze commands installeren geen Chromium.
-11. Evidence wordt gecommit naar `results/<request_id>.json`; herbruikbare screenshots/diffs staan onder `results/evidence/<request_id>/`.
+6. ChatGPT maakt een tijdelijke `runtime/**`-branch en schrijft daar `requests/command.json` via de verbonden GitHub-app.
+7. De push op die runtimebranch triggert `.github/workflows/command.yml`; `main` blijft vrij van prospecttargets en runresidue.
+8. `scripts/run-command.mjs` valideert opnieuw owner, project, commandstatus, bronfreshness, manifestidentiteit, selectors en preconditions.
+9. De geselecteerde target-read-only capability draait op GitHub Actions; browserloze commands installeren geen Chromium.
+10. GitHub Actions uploadt `results/` als tijdelijk artifact `designchecker-command-<run_number>` met 7 dagen retentie. `results/<request_id>.json` en eventuele screenshots onder `results/evidence/<request_id>/` bestaan binnen dat artifact en worden niet naar `main` gecommit.
+11. De owning Skill leest eerst workflowstatus én het artifact terug. Een groene workflow bewijst alleen dat de runtime slaagde; een visuele claim vereist ook de daadwerkelijke screenshot-/render-evidence.
 12. De owning Skill interpreteert evidence. Website QA bezit onafhankelijke geïntegreerde releaseacceptatie waar vereist.
 
 ## Design
@@ -23,7 +23,7 @@ Designchecker wordt alleen gebruikt nadat `design` als owner is gekozen en Proje
 
 - `design`: rendered-page UX/UI-inspectie wanneer runtime-layout, hiërarchie, componenten, formulieren, CTA's of overflow de ontwerpbeslissing kunnen veranderen.
 - `a11y`: geautomatiseerde accessibility-risicosignalen; geen WCAG-conformiteitsclaim.
-- `design-baseline`: vóór redesign, cleanup, before/after, design-engineeringhandoff of een claim waarvoor een actuele reproduceerbare baseline nodig is. Desktop-, tablet- en mobilecaptures worden persistent onder `results/evidence/<request_id>/baseline/` bewaard.
+- `design-baseline`: vóór redesign, cleanup, before/after, design-engineeringhandoff of een claim waarvoor een actuele reproduceerbare baseline nodig is. Desktop-, tablet- en mobilecaptures staan tijdens de run onder `results/evidence/<request_id>/baseline/` en worden daarna alleen als tijdelijk Actions-artifact bewaard.
 - `design-diff`: twee bestaande vergelijkbare screenshots onder `results/evidence/` vergelijken. Alleen bestaande evidencebestanden zijn toegestaan; willekeurige repositorypaden worden geweigerd. Het verschil is bewijs van verandering, niet automatisch van verbetering.
 
 Designcommands vereisen een passende Project Design-selector. Voorbeelden: `quality-audit`, `system-accessibility`, `evidence-baseline`, `handoff`, `design-engineering`, `claims-scoring`.
@@ -32,12 +32,7 @@ Niet automatisch gebruiken wanneer een tekstuele Design-beslissing volstaat, Fig
 
 ## Overige beschikbaarheid
 
-- SEO: `seo`, `seo-technical`, `links`, `performance`, `html` — runtime bewezen, maar momenteel projectbreed geblokkeerd wegens live Project SEO manifest/checksumdrift.
-- Elementor: `elementor`, `elementor-json` — ready met live Project Elementor-broncontext.
-- Leads support: `leads` — alleen na geverifieerde Lead Registry-preflight; geen formele kwalificatie.
-- Leads formal: `lead-formal` — geblokkeerd totdat `webactueel-leadscanner-ingest/1.0` provenance + artifact-readback exact is geïmplementeerd en gevalideerd.
-- WordPress/Programmeren: `performance`, `html` — ready; `wordpressqualityarchitect` blijft code/release-owner.
-- Website QA: `qa`, `a11y`, `links`, `performance`, `html` — ready; Website QA blijft acceptance-owner.
+De directe Designchecker-runtime is bewust Design-only. SEO, Elementor, Leads, Website QA en WordPress/Programmeren gebruiken hun eigen owner-repositories en contracten. Een Leads-flow die visueel bewijs nodig heeft routeert daarom via `Leads -> webactueel-workflow -> design -> Designchecker -> webactueel-workflow -> Leads`; Designchecker draait nooit als `owner=leads`.
 
 ## Bewijsgrens
 

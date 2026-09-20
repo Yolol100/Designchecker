@@ -149,6 +149,8 @@ test('runtime branch cleanup is default-branch controlled and cannot delete arbi
   assert.match(cleanup, /case "\$RUNTIME_BRANCH"/);
   assert.match(cleanup, /runtime\/\*/);
   assert.match(cleanup, /git\/refs\/heads\/\$RUNTIME_BRANCH/);
+  assert.match(cleanup, /Reference does not exist/);
+  assert.match(cleanup, /cleanup is idempotent/);
   assert.doesNotMatch(cleanup, /actions\/checkout/);
   assert.doesNotMatch(cleanup, /OUTREACH_|PASSWORD|SECRET_/);
 });

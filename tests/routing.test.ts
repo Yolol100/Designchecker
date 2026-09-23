@@ -68,6 +68,9 @@ test('direct ChatGPT Web commands remain Design-owner/source/capability bound wi
   assert.equal(runtimeCapability.automatic_selection, true);
   assert.deepEqual(runtimeCapability.consumers, ['webactueel-workflow', 'design']);
 
+  assert.equal(sources.bindings.length, 1, 'Designchecker must not mirror cross-owner project bindings');
+  assert.deepEqual(sources.bindings.map((binding: any) => binding.project_id), ['project-design']);
+  assert.deepEqual(sources.bindings.map((binding: any) => binding.owner), ['design']);
   const allowedBindingStatuses = new Set(['ready', 'blocked-source-integrity']);
   for (const binding of sources.bindings) {
     assert.ok(allowedBindingStatuses.has(binding.execution_status), `Unsupported binding status ${binding.execution_status}`);

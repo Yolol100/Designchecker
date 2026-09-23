@@ -16,6 +16,10 @@ for a in c['usage_assertions']:
     assert a['contains'] in p.read_text(encoding='utf-8'), f"{a['tool']} not wired in {p}"
     covered.add(a['tool'])
 assert covered==set(ids), f'unwired tools: {set(ids)-covered}'
+bindings=json.load(open('config/project-source-bindings.json', encoding='utf-8'))['bindings']
+assert len(bindings) == 1, 'Designchecker must keep exactly one project-source binding'
+assert bindings[0].get('project_id') == 'project-design' and bindings[0].get('owner') == 'design', 'cross-owner project-source binding present'
+assert bindings[0].get('manifest_file_id') == '12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg', 'Project Design manifest ID drift'
 routes=json.load(open('config/direct-command-registry.json', encoding='utf-8'))['routes']
 assert routes and all(r['owner']=='design' and r['project_id']=='project-design' for r in routes), 'cross-owner direct route present'
 print('toolkit-contract: OK')

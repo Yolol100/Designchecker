@@ -1,35 +1,11 @@
 {
-  "schema_version": "1.1",
-  "rule": "Every direct command must be bound to the registered live Google Drive project manifest before execution. Source-set versions are read live and are not pinned here. A project with unresolved source-integrity drift is non-executable even when the runtime itself is healthy.",
+  "schema_version": "1.2",
+  "rule": "Every Designchecker direct command is Design-owned and must be bound only to the registered live Project Design Google Drive manifest before execution. Source-set versions are read live and are not pinned here. Cross-owner projects use their own repositories and contracts; they must not be mirrored into this binding file.",
   "bindings": [
     {
       "project_id": "project-design",
       "owner": "design",
       "manifest_file_id": "12g8WkgS_ICPBKW6U3OO2h1ksB8nbKPLg",
-      "execution_status": "ready"
-    },
-    {
-      "project_id": "project-seo",
-      "owner": "seo",
-      "manifest_file_id": "1NoOIhEqCPDpj18_enRIaRCZoGXorr19q",
-      "execution_status": "ready"
-    },
-    {
-      "project_id": "project-elementor",
-      "owner": "elementor",
-      "manifest_file_id": "1XdkPxfA5GpDaDfYjGfFTJJsqeCLtOjrR",
-      "execution_status": "ready"
-    },
-    {
-      "project_id": "project-plugin",
-      "owner": "wordpressqualityarchitect",
-      "manifest_file_id": "1Gw03B2jOJ9gpMQR0l-YfS6I1EuAIji9f",
-      "execution_status": "ready"
-    },
-    {
-      "project_id": "project-checklist",
-      "owner": "website-qa-checklist",
-      "manifest_file_id": "1P4jFmUFGjZIEAv2nwrrvV8c9egq0iEHC",
       "execution_status": "ready"
     }
   ]

@@ -86,7 +86,8 @@
         ],
         "max_evidence_level": "source"
       }
-    ]
+    ],
+    "route_source": "config/direct-command-registry.json"
   },
   "execution": {
     "request_file": "requests/command.json",

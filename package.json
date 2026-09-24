@@ -14,7 +14,9 @@
     "smoke": "node scripts/smoke.mjs",
     "command": "node scripts/run-command.mjs",
     "dev": "tsx src/cli.ts",
-    "setup:browsers": "playwright install chromium"
+    "setup:browsers": "playwright install chromium",
+    "config:check": "node scripts/sync-config.mjs",
+    "config:sync": "node scripts/sync-config.mjs --write"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

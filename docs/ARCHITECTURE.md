@@ -33,7 +33,7 @@ Alleen `Yolol100/Checklist` is een consolidatiekandidaat. Die route blijft actie
 
 ## Lagen
 
-1. `config/` — capability-, route-, bronbinding- en migratiecontracten.
+1. `config/` — capability-, route-, bronbinding- en migratiecontracten. Voor Design-directe routes is `config/direct-command-registry.json` canoniek; `config/designchecker-integration-contract.json` is een compatibiliteits-/triggerweergave die door `scripts/sync-config.mjs` tegen de canonieke routes wordt gecontroleerd.
 2. `src/core/` — gedeelde URL-, DNS-, evidence- en browserveiligheid.
 3. `src/tools/` — begrensde read-only meetfuncties.
 4. `scripts/run-command.mjs` — Design-only direct-command dispatcher.

@@ -2,6 +2,7 @@
 name: Checklist migration parity
 
 on:
+  workflow_dispatch:
   push:
     branches: ['migration/checklist-parity-20260909']
     paths:

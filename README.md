@@ -1,6 +1,6 @@
 # Designchecker — Automated Website QA & Visual Regression
 
-> **Portfolio flagship · read-only website analysis · TypeScript / Playwright**
+> **Portfolio project · read-only website analysis · TypeScript / Playwright**
 
 Designchecker turns manual website QA into a repeatable evidence workflow. It captures browser behaviour, accessibility signals, performance measurements, markup validation and visual-regression results without making changes to the target website.
 

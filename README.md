@@ -89,5 +89,3 @@ I am **Andrew Baeten**, a Senior WordPress Developer & Web Designer with 10+ yea
 ## License
 
 This repository currently has no open-source license. Reuse, distribution or derivative works are not permitted without explicit permission from the copyright holder.
-
-Standalone legacy SEO, Elementor JSON and formal Leads scripts have been removed after callsite inspection. Use seochecker, elementorjson and Leadscanner through their owner skills. Private IPv4 mapped inside IPv6 is rejected by the same target guard as native IPv4.

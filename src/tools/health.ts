@@ -22,7 +22,7 @@ export interface HealthSignalInput {
   consoleErrors: string[];
   pageErrors: string[];
   firstPartyHttpErrors: Array<{ url: string; status: number }>;
-  firstPartyRequestFailures: Array<{ url: string; error: string | null }>;
+  firstPartyRequestFailures: Array<{ url: string; method: string; error: string | null }>;
 }
 
 export function classifyHealthSignals(input: HealthSignalInput) {
@@ -35,17 +35,16 @@ export function classifyHealthSignals(input: HealthSignalInput) {
     failures.push('missing_http_status');
   } else if (input.httpStatus >= 500) {
     failures.push(`http_${input.httpStatus}`);
-  } else if (input.httpStatus === 404 || input.httpStatus === 410) {
-    failures.push(`http_${input.httpStatus}`);
-  } else if (input.httpStatus >= 400) {
+  } else if (input.httpStatus === 429 || (input.httpStatus >= 400 && input.accessBlocked)) {
     warnings.push(`http_${input.httpStatus}`);
+  } else if (input.httpStatus >= 400) {
+    failures.push(`http_${input.httpStatus}`);
   }
 
   for (const marker of input.criticalMarkers) failures.push(`critical:${marker}`);
   if (!input.accessBlocked && input.renderUsable === false) failures.push('insufficient_rendered_content');
 
   if (input.accessBlocked) warnings.push('access_barrier');
-  if (!input.title.trim()) warnings.push('missing_title');
   if (input.pageErrors.length > 0) warnings.push('page_errors');
   if (input.consoleErrors.length > 0) warnings.push('console_errors');
   if (input.firstPartyHttpErrors.length > 0) warnings.push('first_party_http_errors');
@@ -86,6 +85,23 @@ function sameSiteHost(a: string, b: string) {
   return normalize(a) === normalize(b);
 }
 
+export function shouldRecordRequestFailure(method: string, errorText: string | null) {
+  if (!['GET', 'HEAD'].includes(method.toUpperCase())) return false;
+  if (errorText && /ERR_BLOCKED_BY_CLIENT/i.test(errorText)) return false;
+  return true;
+}
+
+export function isRelevantConsoleLocation(locationUrl: string, rootHost: string) {
+  if (!locationUrl) return true;
+  try {
+    const url = new URL(locationUrl);
+    if (!['http:', 'https:'].includes(url.protocol)) return true;
+    return sameSiteHost(url.hostname, rootHost);
+  } catch {
+    return true;
+  }
+}
+
 export async function checkWebsiteHealth(
   target: string,
   options: { browser?: Browser; screenshotDir?: string; screenshotName?: string } = {}
@@ -103,11 +119,14 @@ export async function checkWebsiteHealth(
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   const firstPartyHttpErrors: Array<{ url: string; status: number }> = [];
-  const firstPartyRequestFailures: Array<{ url: string; error: string | null }> = [];
+  const firstPartyRequestFailures: Array<{ url: string; method: string; error: string | null }> = [];
   let screenshot: string | null = null;
 
   page.on('console', (message: ConsoleMessage) => {
-    if (message.type() === 'error' && consoleErrors.length < 20) consoleErrors.push(message.text().slice(0, 1000));
+    if (message.type() !== 'error' || consoleErrors.length >= 20) return;
+    const locationUrl = message.location().url || '';
+    if (!isRelevantConsoleLocation(locationUrl, rootHost)) return;
+    consoleErrors.push(message.text().slice(0, 1000));
   });
   page.on('pageerror', (error: Error) => {
     if (pageErrors.length < 20) pageErrors.push(error.message.slice(0, 1000));
@@ -125,8 +144,11 @@ export async function checkWebsiteHealth(
   page.on('requestfailed', (request: Request) => {
     try {
       const url = new URL(request.url());
+      const method = request.method();
+      const error = request.failure()?.errorText ?? null;
+      if (!shouldRecordRequestFailure(method, error)) return;
       if (sameSiteHost(url.hostname, rootHost) && firstPartyRequestFailures.length < 30) {
-        firstPartyRequestFailures.push({ url: request.url(), error: request.failure()?.errorText ?? null });
+        firstPartyRequestFailures.push({ url: request.url(), method, error });
       }
     } catch {
       // Ignore non-HTTP request URLs.

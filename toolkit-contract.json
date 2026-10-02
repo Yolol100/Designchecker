@@ -1,9 +1,7 @@
 {
   "schema_version": "1.1",
   "owner_skill": "design",
-  "consumer_skills": [
-    "website-qa-checklist"
-  ],
+  "consumer_skills": ["website-qa-checklist"],
   "project_id": "project-design",
   "repository": "Yolol100/Designchecker",
   "evidence_role": "controlled_runtime_design_evidence_and_bounded_website_qa_observation",
@@ -11,86 +9,20 @@
   "requires_api_key": false,
   "requires_mcp": false,
   "tools": [
-    {
-      "id": "playwright",
-      "version": "package-lock",
-      "trigger_when": "rendered design evidence or baseline is needed",
-      "outputs": [
-        "results/"
-      ]
-    },
-    {
-      "id": "axe-core",
-      "version": "package-lock",
-      "trigger_when": "Design-owned accessibility risk signals are needed",
-      "outputs": [
-        "results/"
-      ]
-    },
-    {
-      "id": "lighthouse",
-      "version": "package-lock",
-      "trigger_when": "performance signals materially affect a Design decision",
-      "outputs": [
-        "results/"
-      ]
-    },
-    {
-      "id": "pixelmatch",
-      "version": "package-lock",
-      "trigger_when": "before/after visual diff is requested",
-      "outputs": [
-        "results/"
-      ]
-    },
-    {
-      "id": "sharp",
-      "version": "package-lock",
-      "trigger_when": "image evidence normalization is needed",
-      "outputs": [
-        "results/"
-      ]
-    },
-    {
-      "id": "vnu-jar",
-      "version": "package-lock",
-      "trigger_when": "markup validity is relevant to Design-controlled evidence",
-      "outputs": [
-        "results/"
-      ]
-    }
+    {"id":"playwright","version":"package-lock","trigger_when":"rendered design evidence or baseline is needed","outputs":["results/"]},
+    {"id":"axe-core","version":"package-lock","trigger_when":"Design-owned accessibility risk signals are needed","outputs":["results/"]},
+    {"id":"lighthouse","version":"package-lock","trigger_when":"performance signals materially affect a Design decision","outputs":["results/"]},
+    {"id":"pixelmatch","version":"package-lock","trigger_when":"before/after visual diff is requested","outputs":["results/"]},
+    {"id":"sharp","version":"package-lock","trigger_when":"image evidence normalization is needed","outputs":["results/"]},
+    {"id":"vnu-jar","version":"package-lock","trigger_when":"markup validity is relevant to Design-controlled evidence","outputs":["results/"]}
   ],
   "usage_assertions": [
-    {
-      "tool": "playwright",
-      "path": "package.json",
-      "contains": "playwright"
-    },
-    {
-      "tool": "axe-core",
-      "path": "package.json",
-      "contains": "axe-core"
-    },
-    {
-      "tool": "lighthouse",
-      "path": "package.json",
-      "contains": "lighthouse"
-    },
-    {
-      "tool": "pixelmatch",
-      "path": "package.json",
-      "contains": "pixelmatch"
-    },
-    {
-      "tool": "sharp",
-      "path": "package.json",
-      "contains": "sharp"
-    },
-    {
-      "tool": "vnu-jar",
-      "path": "package.json",
-      "contains": "vnu-jar"
-    }
+    {"tool":"playwright","path":"package.json","contains":"playwright"},
+    {"tool":"axe-core","path":"package.json","contains":"axe-core"},
+    {"tool":"lighthouse","path":"package.json","contains":"lighthouse"},
+    {"tool":"pixelmatch","path":"package.json","contains":"pixelmatch"},
+    {"tool":"sharp","path":"package.json","contains":"sharp"},
+    {"tool":"vnu-jar","path":"package.json","contains":"vnu-jar"}
   ],
   "boundaries": [
     "Design remains the only repository owner and all direct command routes retain owner=design/project-design.",

@@ -31,5 +31,7 @@ jobs:
       - run: npm test
       - name: Validate active direct command runner
         run: node --check scripts/run-command.mjs
+      - name: Validate post-update healthcheck runner
+        run: node --check scripts/run-healthcheck.mjs
       - run: npx playwright install --with-deps chromium
       - run: npm run smoke

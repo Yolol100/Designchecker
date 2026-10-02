@@ -4,7 +4,7 @@
   "consumer_skills": ["website-qa-checklist"],
   "project_id": "project-design",
   "repository": "Yolol100/Designchecker",
-  "evidence_role": "controlled_runtime_design_evidence",
+  "evidence_role": "controlled_runtime_design_evidence_and_bounded_website_qa_observation",
   "requires_account": false,
   "requires_api_key": false,
   "requires_mcp": false,
@@ -29,6 +29,7 @@
     "Website QA may consume bounded reproducible public browser/axe/Lighthouse/markup/visual-diff evidence from this repository for independent QA acceptance; this does not transfer Design policy ownership or authorize design changes.",
     "SEO, Elementor, Leads and Programmeren use their owner repositories rather than this capability.",
     "MCP packages may exist as optional adapters but are never required for the direct GitHub route.",
-    "Automated accessibility signals are not a WCAG conformance claim."
+    "Automated accessibility signals are not a WCAG conformance claim.",
+    "Client-target post-update health evidence must never be persisted by a public Designchecker workflow run; GitHub-hosted client checks must use the reusable workflow from a private caller, while public pull-request validation uses fixture-only targets."
   ]
 }

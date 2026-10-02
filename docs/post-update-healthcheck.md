@@ -1,12 +1,12 @@
 # Post-update website healthcheck
 
-Designchecker can run the same read-only post-update healthcheck locally or through GitHub Actions.
+Designchecker provides one read-only post-update health engine for local use and a reusable GitHub Actions workflow.
 
 ## What it checks
 
-A target is `FAIL` on decisive homepage failures such as HTTP 5xx/404, navigation failure, a WordPress critical/database/maintenance error, or an unusable blank render.
+A target is `FAIL` on decisive homepage failures such as HTTP 4xx/5xx, navigation failure, a WordPress critical/database/maintenance error, or an unusable blank render. A recognized WAF/bot barrier and HTTP 429 remain `WARNING` because they can block the synthetic runner while the public site is still healthy.
 
-A target is `WARNING` for non-decisive signals such as a WAF/bot barrier, browser console/page errors, or failing first-party subresources. These signals require review but do not automatically mean the website is offline.
+Browser/page errors and failing first-party GET/HEAD subresources are `WARNING`. Requests that Designchecker's own read-only network guard intentionally blocks are ignored, so forms or write requests cannot create false warnings.
 
 The runner never submits forms or other write requests. The existing network guard allows only GET/HEAD and blocks private/local targets unless the repository's explicit local-test override is enabled.
 
@@ -28,27 +28,25 @@ npm run healthcheck -- --summary /path/to/run/summary.tsv
 
 The result is written to `results/healthcheck.json`. Screenshots are created only for `WARNING` and `FAIL` targets.
 
-## GitHub Actions
+## GitHub Actions and client privacy
 
-`.github/workflows/post-update-healthcheck.yml` supports:
+`Yolol100/Designchecker` is public. Client domains, screenshots and health evidence must therefore **not** be submitted to a direct workflow run in this repository.
 
-- `workflow_dispatch` with `targets_json`;
-- `repository_dispatch` with event type `wordpress_post_update_healthcheck` and `client_payload.targets`.
+`.github/workflows/post-update-healthcheck.yml` is a reusable `workflow_call` capability. A private caller repository supplies `targets_json` and pins both the reusable workflow reference and `designchecker_ref` to an immutable Designchecker commit SHA. The run and uploaded artifacts then remain attached to the private caller workflow rather than becoming public Designchecker evidence.
 
-Example payload shape:
+Public pull-request runs use only the fixed `https://example.com` fixture to verify the reusable workflow itself.
 
-```json
-{
-  "event_type": "wordpress_post_update_healthcheck",
-  "client_payload": {
-    "targets": [
-      {"domain": "example.com", "updateStatus": "PASS"},
-      "https://shop.example.com/"
-    ]
-  }
-}
+A private caller can use:
+
+```yaml
+jobs:
+  healthcheck:
+    uses: Yolol100/Designchecker/.github/workflows/post-update-healthcheck.yml@<DESIGNCHECKER_SHA>
+    with:
+      targets_json: ${{ inputs.targets_json }}
+      designchecker_ref: <DESIGNCHECKER_SHA>
 ```
 
-The workflow accepts at most 150 targets, runs four browser checks concurrently, uploads the run-scoped JSON/screenshots for seven days, and fails only when one or more sites have a definitive `FAIL` result.
+If an external WordPress/Hostinger update script starts that private caller through GitHub's `workflow_dispatch` API, use a narrowly scoped credential supplied through the runtime environment or another approved secret store. For a fine-grained personal access token, the target private repository requires **Actions: write** for `workflow_dispatch`. Never hard-code the token in the update script.
 
-Do not hard-code a GitHub token in a WordPress/Hostinger update script. If an external script triggers this workflow, use a narrowly scoped credential supplied through the runtime environment or another approved secret store.
+The reusable workflow accepts at most 150 targets, defaults to four browser checks concurrently, uploads run-scoped JSON/screenshots for seven days and fails only when one or more sites have a definitive `FAIL` result.

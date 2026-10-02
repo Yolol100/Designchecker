@@ -7,3 +7,4 @@ export { runLighthouse } from './performance.js';
 export { validateHtml } from './html.js';
 export { compareScreenshots } from './visual.js';
 export { collectQaEvidence } from './checklist.js';
+export { checkWebsiteHealth, classifyHealthSignals, detectCriticalHealthMarkers, normalizeHealthTarget } from './health.js';

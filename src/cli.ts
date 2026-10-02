@@ -1,6 +1,7 @@
 import {
   captureDesignBaseline,
   checkLinks,
+  checkWebsiteHealth,
   collectQaEvidence,
   compareScreenshots,
   inspectDesign,
@@ -15,7 +16,7 @@ import type { Owner } from './core/types.js';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
-  if (!command) throw new Error('Command required: design|seo|a11y|elementor|leads|qa|links|performance|html|baseline|diff');
+  if (!command) throw new Error('Command required: design|seo|a11y|elementor|leads|qa|health|links|performance|html|baseline|diff');
   const owner = process.env.WEBACTUEEL_EVIDENCE_OWNER as Owner | undefined;
   const tool = process.env.WEBACTUEEL_EVIDENCE_TOOL || undefined;
   let result: unknown;
@@ -26,6 +27,12 @@ async function main() {
     case 'elementor': result = await inspectElementor(required(args[0], 'URL'), owner ?? 'elementor', tool ?? 'elementor_inspect_page'); break;
     case 'leads': result = await inspectLeadSite(required(args[0], 'URL'), owner ?? 'leads', tool ?? 'lead_inspect_public_site'); break;
     case 'qa': result = await collectQaEvidence(required(args[0], 'URL')); break;
+    case 'health': {
+      const health = await checkWebsiteHealth(required(args[0], 'URL'));
+      result = health;
+      if (health.data.verdict === 'fail') process.exitCode = 2;
+      break;
+    }
     case 'links': result = await checkLinks(required(args[0], 'URL'), 40, owner ?? 'seo', tool ?? 'seo_check_links'); break;
     case 'performance': result = await runLighthouse(required(args[0], 'URL'), owner ?? 'website-qa-checklist', tool ?? 'performance_lighthouse'); break;
     case 'html': result = await validateHtml(required(args[0], 'URL'), owner ?? 'website-qa-checklist', tool ?? 'html_validate_url'); break;

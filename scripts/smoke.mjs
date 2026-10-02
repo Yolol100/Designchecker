@@ -4,6 +4,7 @@ import path from 'node:path';
 import {
   captureDesignBaseline,
   checkLinks,
+  checkWebsiteHealth,
   collectQaEvidence,
   compareScreenshots,
   inspectDesign,
@@ -34,6 +35,7 @@ try {
   await run('links', () => checkLinks(target, 5));
   await run('performance', () => runLighthouse(target));
   await run('html', () => validateHtml(target));
+  await run('health', () => checkWebsiteHealth(target));
   const baseline = await run('baseline', () => captureDesignBaseline(target, temp));
   const first = baseline.data.captures[0]?.file;
   if (!first) throw new Error('Baseline produced no screenshot');

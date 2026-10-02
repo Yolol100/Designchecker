@@ -13,6 +13,7 @@
     "test": "node --test dist/tests/*.test.js",
     "smoke": "node scripts/smoke.mjs",
     "command": "node scripts/run-command.mjs",
+    "healthcheck": "npm run build --silent && node scripts/run-healthcheck.mjs",
     "dev": "tsx src/cli.ts",
     "setup:browsers": "playwright install chromium",
     "config:check": "node scripts/sync-config.mjs",

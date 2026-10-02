@@ -1,0 +1,93 @@
+name: Post-update Website Healthcheck
+
+on:
+  workflow_dispatch:
+    inputs:
+      targets_json:
+        description: 'JSON array with public domains/URLs or objects containing domain/url (max 150)'
+        required: true
+        type: string
+  repository_dispatch:
+    types: [wordpress_post_update_healthcheck]
+
+permissions:
+  contents: read
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.23.2'
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Validate and build Designchecker
+        run: |
+          npm run check
+          npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Materialize run-scoped targets
+        shell: bash
+        env:
+          MANUAL_TARGETS: ${{ inputs.targets_json }}
+          DISPATCH_TARGETS: ${{ toJSON(github.event.client_payload.targets) }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const source = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
+            ? process.env.MANUAL_TARGETS
+            : process.env.DISPATCH_TARGETS;
+          if (!source) throw new Error('No healthcheck targets supplied.');
+          let targets = JSON.parse(source);
+          if (typeof targets === 'string') targets = JSON.parse(targets);
+          if (!Array.isArray(targets) || targets.length < 1 || targets.length > 150) {
+            throw new Error('targets must be a JSON array with 1-150 entries.');
+          }
+          fs.writeFileSync('health-targets.json', JSON.stringify(targets));
+          NODE
+      - name: Run post-update healthcheck
+        id: health
+        shell: bash
+        run: |
+          set +e
+          node scripts/run-healthcheck.mjs \
+            --targets-file health-targets.json \
+            --output results/healthcheck.json \
+            --screenshot-dir results/healthcheck-screenshots \
+            --concurrency 4
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Publish aggregate summary
+        if: always()
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          if (!fs.existsSync('results/healthcheck.json')) process.exit(0);
+          const result = JSON.parse(fs.readFileSync('results/healthcheck.json', 'utf8'));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `## Post-update healthcheck\n\n` +
+            `Targets: ${result.targetCount}\n\n` +
+            `PASS: ${result.summary.pass} | WARNING: ${result.summary.warning} | FAIL: ${result.summary.fail}\n`);
+          NODE
+      - name: Upload run-scoped health evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: post-update-health-${{ github.run_id }}
+          path: results/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Propagate definitive health failure
+        if: steps.health.outputs.exit_code != '0'
+        run: exit "${{ steps.health.outputs.exit_code }}"

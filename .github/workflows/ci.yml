@@ -15,6 +15,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -31,5 +32,7 @@ jobs:
       - run: npm test
       - name: Validate active direct command runner
         run: node --check scripts/run-command.mjs
+      - name: Validate post-update healthcheck runner
+        run: node --check scripts/run-healthcheck.mjs
       - run: npx playwright install --with-deps chromium
       - run: npm run smoke

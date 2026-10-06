@@ -125,7 +125,6 @@ export function isReadOnlyNetworkMethod(method: string): boolean {
 }
 
 export async function installNetworkGuard(page: Page): Promise<void> {
-  const checkedHosts = new Map<string, Promise<void>>();
   await page.route('**/*', async (route) => {
     const request = route.request();
     const requestUrl = request.url();
@@ -137,13 +136,10 @@ export async function installNetworkGuard(page: Page): Promise<void> {
 
       const parsed = new URL(requestUrl);
       if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-        const key = `${parsed.protocol}//${parsed.host}`;
-        let check = checkedHosts.get(key);
-        if (!check) {
-          check = assertPublicTarget(requestUrl).then(() => undefined);
-          checkedHosts.set(key, check);
-        }
-        await check;
+        // Re-resolve every HTTP(S) request. Do not cache host approval: a hostname
+        // that was public earlier in the page lifecycle may later rebind to a
+        // private/link-local address.
+        await assertPublicTarget(requestUrl);
       }
       await route.continue();
     } catch {

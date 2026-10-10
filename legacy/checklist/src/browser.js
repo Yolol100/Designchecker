@@ -175,6 +175,7 @@ async function inspectViewport(browser, url, name, artifactRoot) {
       const controls = [...document.querySelectorAll("button,input,select,textarea")];
       const baseHost = location.hostname;
       const safeUrl = (value) => {
+        if (typeof value !== "string" || !value.trim()) return null;
         try {
           const parsed = new URL(value, location.href);
           if (!/^https?:$/.test(parsed.protocol)) return null;

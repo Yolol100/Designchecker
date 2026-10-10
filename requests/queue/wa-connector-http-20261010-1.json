@@ -1,0 +1,34 @@
+{
+  "request_id": "wa-connector-http-20261010-1",
+  "url": "https://webactueel.nl/wp-json/webactueel-wordpress-connector/v1/presence",
+  "level": "quick",
+  "task_type": "audit",
+  "target_environment": "production",
+  "requester": "webactueel-workflow",
+  "source_context": {
+    "project_id": "project-checklist",
+    "source_set_version": "2026-10-10.1-theme-qa-compatible-source-sync",
+    "manifest_sha256": "faab4d6903acbbd997e8004dcd594c3848689ef3451766e",
+    "selected_sources": [
+      "active/00-project-index-en-router.md",
+      "active/01-qa-proces-en-severity.md",
+      "active/11-evidence-levels-runtime-matrix.md",
+      "support/82-tool-en-browsermatrix.md",
+      "support/83-evidence-manifest-schema.json",
+      "support/84-runtime-matrix-schema.json",
+      "support/87-master-project-checklist.md",
+      "support/88-playwright-axe-adapter.md"
+    ],
+    "source_hashes": {
+      "active/00-project-index-en-router.md": "1950084244bd9fbdc09309640fc50e8dcf39e2259f829085d5183edae1d2e24c",
+      "active/01-qa-proces-en-severity.md": "787e2edb7b5d6bd07daabe2bacc8a91d801ea0561da6bc116be50138e53ed875",
+      "active/11-evidence-levels-runtime-matrix.md": "a499f579c2925dbc172d6dca880f7447f887638662c2e7d9c00357e7c3eddbd7",
+      "support/82-tool-en-browsermatrix.md": "413dc130d699633ca575c092f9d57cbbd66d4a52e6c481fbc1f75e392ded9107",
+      "support/83-evidence-manifest-schema.json": "4a732c3010d64cea159de367ba9f326d38f89b98fffb8c8aa2afb6426f2fe62d",
+      "support/84-runtime-matrix-schema.json": "9c6c6660e02193d126efbeb75b4943c5d7a82c1401852e69f6b72b9ee4576eb2",
+      "support/87-master-project-checklist.md": "921b09229dd2df1bc602504e30ef51fa6cfd9ea4a3009541d9c97323e98762bb",
+      "support/88-playwright-axe-adapter.md": "df184f07beec3d08af429d1fe65cf43b3b91298536c5ac8957d7435eb5b1e8ce"
+    },
+    "selection_basis": "Read-only health/presence HTTP status of current WordPress connector path; no site mutations"
+  }
+}

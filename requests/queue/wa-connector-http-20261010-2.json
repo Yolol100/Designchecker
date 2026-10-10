@@ -8,7 +8,7 @@
   "source_context": {
     "project_id": "project-checklist",
     "source_set_version": "2026-10-10.1-theme-qa-compatible-source-sync",
-    "manifest_sha256": "faab4d6903acbbd997e8004dcd594c3848689ef3451766e",
+    "manifest_sha256": "faab4d6903acbbd997e8004dcd594c3848689ef3451766a175b17b5afed3368e",
     "selected_sources": [
       "active/00-project-index-en-router.md",
       "active/01-qa-proces-en-severity.md",

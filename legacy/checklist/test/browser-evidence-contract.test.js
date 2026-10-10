@@ -38,3 +38,13 @@ test("missing canonical never becomes a synthetic /null URL", () => {
   const actual = script.runInNewContext({ URL }, { timeout: 1000 });
   assert.deepEqual(Array.from(actual), [null, null, null, null, "https://shop.example.test/products/"]);
 });
+
+test("navigation observations are count-only, privacy safe and tied to rendered DOM", () => {
+  const checklist = fs.readFileSync("src/checklist.js", "utf8");
+  assert.match(browser, /navigation_structure: \\{/);
+  for (const key of ["header_count", "footer_count", "navigation_count", "navigation_link_count", "header_navigation_link_count", "footer_navigation_link_count", "site_title_link_count"]) {
+    assert.match(browser, new RegExp(key + ": document\\.querySelectorAll\\("));
+  }
+  assert.match(checklist, /navigation_structure: renderedDom\\?\\.navigation_structure \\|\\| null/);
+  assert.doesNotMatch(checklist, /navigation_structure: .*innerHTML/);
+});

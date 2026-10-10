@@ -68,8 +68,8 @@ jobs:
       - name: Run pinned local Nu HTML Checker
         if: steps.request.outputs.level == 'full' || steps.request.outputs.task_type == 'release_verification'
         env:
-          VNU_ASSET_ID: "515207969"
-          VNU_SHA256: "c70279e260e5f4f9e95b3890ef6c9548f90ebdaec2a75219ec41694ab6241e34"
+          VNU_ASSET_ID: "623868878"
+          VNU_SHA256: "041b80ba3d4b6fc5e5bc385fecb285fa4e68a525cd4ce240e5d6ab54058fd2d2"
           TARGET_URL: ${{ steps.request.outputs.target_url }}
         run: |
           mkdir -p reports tools

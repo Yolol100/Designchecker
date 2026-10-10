@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import vm from "node:vm";
 
 const browser = fs.readFileSync("src/browser.js", "utf8");
 
@@ -24,4 +25,16 @@ test("persisted browser screenshots use deterministic Playwright settings", () =
   assert.match(browser, /caret:\s*"hide"/);
   assert.match(browser, /scale:\s*"css"/);
   assert.match(browser, /page\.screenshot\(\{[^}]*\.\.\.BROWSER_CONFIG\.screenshotStability/);
+});
+
+test("missing canonical never becomes a synthetic /null URL", () => {
+  const match = browser.match(/const safeUrl = \\(value\\) => \\{[\\s\\S]*?\\n      \\};/);
+  assert.ok(match, "inline browser URL sanitizer not found");
+  const script = new vm.Script(`(() => {
+    const location = { href: "https://shop.example.test/winkel/" };
+    ${match[0]}
+    return [safeUrl(null), safeUrl(undefined), safeUrl(""), safeUrl("   "), safeUrl("https://shop.example.test/products/?ref=foo#section")];
+  })()`);
+  const actual = script.runInNewContext({ URL }, { timeout: 1000 });
+  assert.deepEqual(Array.from(actual), [null, null, null, null, "https://shop.example.test/products/"]);
 });

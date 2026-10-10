@@ -399,7 +399,7 @@ export async function runChecklist(rawUrl, level = "standard", artifactRoot = "a
     category: "frontend",
     title: "H1-aanwezigheid in gerenderde UI-state",
     outcome: h1Count >= 1 ? OUTCOME.OK : OUTCOME.ISSUE,
-    data: { h1_count: h1Count, basis: domBasis },
+    data: { h1_count: h1Count, basis: domBasis, navigation_structure: renderedDom?.navigation_structure || null },
     evidenceIds: domEvidenceIds
   }));
 

@@ -28,7 +28,7 @@ test("persisted browser screenshots use deterministic Playwright settings", () =
 });
 
 test("missing canonical never becomes a synthetic /null URL", () => {
-  const match = browser.match(/const safeUrl = \\(value\\) => \\{[\\s\\S]*?\\n      \\};/);
+  const match = browser.match(/const safeUrl = \(value\) => \{[\s\S]*?\n      \};/);
   assert.ok(match, "inline browser URL sanitizer not found");
   const script = new vm.Script(`(() => {
     const location = { href: "https://shop.example.test/winkel/" };

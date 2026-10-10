@@ -227,6 +227,15 @@ async function inspectViewport(browser, url, name, artifactRoot) {
         canonical: safeUrl(document.querySelector('link[rel~="canonical"]')?.href || null),
         robots_meta: document.querySelector('meta[name="robots"]')?.getAttribute("content") || null,
         h1_count: document.querySelectorAll("h1").length,
+        navigation_structure: {
+          header_count: document.querySelectorAll("header").length,
+          footer_count: document.querySelectorAll("footer").length,
+          navigation_count: document.querySelectorAll("nav.wp-block-navigation").length,
+          navigation_link_count: document.querySelectorAll("nav.wp-block-navigation a[href]").length,
+          header_navigation_link_count: document.querySelectorAll("header nav.wp-block-navigation a[href]").length,
+          footer_navigation_link_count: document.querySelectorAll("footer nav.wp-block-navigation a[href]").length,
+          site_title_link_count: document.querySelectorAll(".wp-block-site-title a[href]").length
+        },
         form_count: document.querySelectorAll("form").length,
         image_count: images.length,
         missing_alt_attribute_count: images.filter((node) => !node.hasAttribute("alt")).length,

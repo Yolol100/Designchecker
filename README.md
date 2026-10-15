@@ -21,6 +21,10 @@ A website can look correct during a quick manual check while still containing br
 | Engineering quality | TypeScript, CI, contract tests, fixtures and bounded smoke checks |
 | Safety | Read-only execution and temporary run-scoped input/output |
 
+## Quick code-review route
+
+For a short technical review, see the [QA engines](src/), [regression tests](tests/), [CI workflows](.github/workflows/) and [toolkit contract](toolkit-contract.json). These are reusable source and verification paths; client-specific findings and screenshots remain outside the public default branch.
+
 ## Quick technical review
 
 ```bash

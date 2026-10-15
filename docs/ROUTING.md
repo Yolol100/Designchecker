@@ -20,6 +20,11 @@ Vaste volgorde: `doel -> domain_owner -> live projectbron -> taakrelevante selec
 - Een afwijking blokkeert een volledige synchronisatie- of releaseclaim totdat de betrokken eigenaar de wijziging met back-up, readback en regressietests heeft gereconcilieerd. Designchecker blijft uitsluitend read-only bewijsuitvoerder: geen gekopieerde QA-beleidsbestanden, klantdata of vastgepinde projecthashes in deze repo.
 - `Yolol100/Checklist` is alleen de legacy rollbackroute; nieuwe QA-features en de actieve browser-evidenceroute horen daar niet thuis.
 
+### WordPress-productprofielen als QA-selectie (geen runtimewijziging)
+
+- De live `project-checklist`-bron `support/92-wordpress-deliverable-quality-profiles.md` laat de Website-QA-Skill vier optionele scenariofamilies selecteren: `WPQ-S` (website/journey/CRO), `WPQ-W` (webshop/aankoop), `WPQ-P` (plugin UX/lifecycle) en `WPQ-T` (theme content/journey). Een webshop activeert tevens de websitejourney; plugin- en themabroncode zonder aangetoonde gewijzigde siteflow activeert geen browser-GO.
+- Dit zijn **alleen** Checklist-evidenceankers, geen nieuwe controller-`change_type`-ID's, Designchecker-commando's, Design-owned source bindings of extra repositorybeleid. `webactueel-workflow` en de eigenaren behouden bestaande uitvoering en acceptatie; de harness levert uitsluitend expliciet aangevraagd read-only browserbewijs.
+
 ## ChatGPT-trigger
 
 Normale ChatGPT Web gebruikt standaard geen MCP. Na live bronverificatie schrijft ChatGPT `requests/command.json` via de bestaande GitHub-app. GitHub Actions voert het command uit en commit evidence terug naar `results/`. MCP blijft alleen een optionele backwards-compatible interface.

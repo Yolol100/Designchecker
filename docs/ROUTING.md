@@ -1,42 +1,21 @@
-# Routingcontract
+# Designchecker - compact routingcontract
 
-De repository is een capability- en uitvoerlaag, geen tweede inhoudelijke eigenaar.
+**Volgorde:** doel -> vakowner -> live projectmanifest -> taakselectie -> tool -> bewijs -> eigenaar. `webactueel-workflow` coordineert; deze repository voert alleen bounded read-only browser-/designbewijs uit, nooit zelfstandig Go/No-Go of productiebeheer.
 
-Vaste volgorde: `doel -> domain_owner -> live projectbron -> taakrelevante selector -> capability -> tool -> evidence`.
+## Eigenaarschap
 
-- `webactueel-workflow` bepaalt de eigenaar en beheert cross-skill routing.
-- Skills bevatten herbruikbare methode; geregistreerde Drive-manifesten bevatten projectwaarheid.
-- `config/project-source-bindings.json` bindt uitsluitend Design-commando's aan het geregistreerde live Project Design-manifest. De controller leest voor andere vakskills en Website QA hun eigen projectmanifests; deze repo spiegelt die bronnen niet.
-- `config/direct-command-registry.json` bepaalt command, owner, project, capability, preconditions en evidence-scope voor ChatGPT Web.
-- `config/tool-routing.json` koppelt de gedeelde meettools aan dezelfde owners en selectorfamilies.
-- Een tool creëert nooit een tweede domain owner. Gedeelde engines erven de primaire route-owner.
-- Leads vereist eerst de persistente Lead Registry; supportbewijs is geen formele kwalificatie.
-- Website QA blijft eigenaar van onafhankelijke runtime-GO/No-Go.
+- `config/project-source-bindings.json` hoort uitsluitend bij Project Design; QA/SEO/Elementor/Programmeren gebruiken hun eigen live bronnen via de controller.
+- `config/direct-command-registry.json` en `config/tool-routing.json` bepalen de uitvoerbare Design-routes. Een gedeelde tool wordt geen tweede owner; Leads en andere vakroutes behouden hun eigen repo/contract.
+- `website-qa-checklist` accepteert onafhankelijke QA; `Yolol100/Checklist` is rollback-only. Geen klantdata, screenshots of taakgebonden manifestkopieen op `main`.
 
-## Website QA: bron- en Skill-integriteit
+## WordPress QA
 
-- `website-qa-checklist` blijft de onafhankelijke acceptatie-eigenaar; het **live** `project-checklist/PROJECT-MANIFEST.json` bepaalt de actieve bronnen en hun SHA-256, terwijl de geïnstalleerde Skill-versie zijn eigen pakketmanifest (`references/source-manifest.json`) heeft.
-- Voor bron-/Skill-synchronisatie vergelijkt `webactueel-workflow` de ruwe SHA-256 van **elke actieve** `active/<bestandsnaam>` met de corresponderende actuele `references/<bestandsnaam>` van de Skill, inclusief bronrouter en specialist-completion. Project- en Skill-versies zijn aparte reeksen en mogen niet blind op stringgelijkheid worden beoordeeld.
-- Een afwijking blokkeert een volledige synchronisatie- of releaseclaim totdat de betrokken eigenaar de wijziging met back-up, readback en regressietests heeft gereconcilieerd. Designchecker blijft uitsluitend read-only bewijsuitvoerder: geen gekopieerde QA-beleidsbestanden, klantdata of vastgepinde projecthashes in deze repo.
-- `Yolol100/Checklist` is alleen de legacy rollbackroute; nieuwe QA-features en de actieve browser-evidenceroute horen daar niet thuis.
+- Het live Project Checklist-manifest is bronwaarheid; de geinstalleerde Skill heeft een apart SHA-manifest. Vergelijk **alle actieve bronhashes** voor een syncclaim. Verschillen eerst gecontroleerd reconciliëren met back-up, readback en regressietests; versienummers hoeven niet identiek te zijn.
+- Selecteer alleen wat van toepassing is: `WPQ-S` website/klantreis/CRO; `WPQ-W` webshop/kooproute; `WPQ-P` plugin UX/lifecycle; `WPQ-T` thema/editor/TH-01..16. Een webshop krijgt ook de sitejourney; een los ZIP of admin-only plugin krijgt geen fictieve publieke browser-/checkout-PASS.
+- Een expliciete audit mag zonder codewijziging. Selectie en een ingevuld reviewregister zijn **planning**, geen runtime-, conversie- of WCAG-Go.
 
-### WordPress-productprofielen als QA-selectie (geen runtimewijziging)
+## Uitvoering en veiligheid
 
-- De live `project-checklist`-bron `support/92-wordpress-deliverable-quality-profiles.md` laat de Website-QA-Skill vier optionele scenariofamilies selecteren: `WPQ-S` (website/journey/CRO), `WPQ-W` (webshop/aankoop), `WPQ-P` (plugin UX/lifecycle) en `WPQ-T` (theme content/journey). Een webshop activeert tevens de websitejourney; plugin- en themabroncode zonder aangetoonde gewijzigde siteflow activeert geen browser-GO.
-- Dit zijn **alleen** Checklist-evidenceankers, geen nieuwe controller-`change_type`-ID's, Designchecker-commando's, Design-owned source bindings of extra repositorybeleid. `webactueel-workflow` en de eigenaren behouden bestaande uitvoering en acceptatie; de harness levert uitsluitend expliciet aangevraagd read-only browserbewijs.
-
-- Een expliciet gevraagde audit selecteert alle toepasselijke kwaliteitsgebieden ook zonder voorafgaande codewijziging; de profielselector is planning, geen browser-Go of formele WCAG-/conversieclaim.
-
-## ChatGPT-trigger
-
-Selecteer de werkelijk beschikbare capability; MCP is optioneel, geen verplichte route of standaardverbod. Voor een Design-owned direct command kan de bestaande GitHub-app na live bronverificatie `requests/command.json` op een tijdelijke `runtime/**`-branch schrijven. GitHub Actions voert read-only uit en levert `results/` als **run-scoped workflow-artifact**, niet als commit op `main`. Lees artifact, request-ID, head-SHA en omgeving terug vóór een claim. De bestaande cleanupworkflow verwijdert alleen afgeronde tijdelijke runtimebranches.
-
-## Harde poorten en herstel
-
-- Verkeerd owner/project/manifest-ID: blokkeer alleen de betreffende route en verifieer de correcte geregistreerde bron.
-- Niet-geverifieerde of verouderde broncontext: lees de live bron opnieuw; een oude cache is geen definitieve projectblokkade.
-- Projectbinding `execution_status != ready` of commandroute `status != ready`: voer **die route** pas uit nadat de geregistreerde blocker is opgelost.
-- Ontbrekende optionele tool, browser of scope-evidence: kies een beschikbare, gelijkwaardige read-only route; blijft het nodig, zet de **getroffen test** op `blocked`/`not_run`, niet het hele rapport op fictieve PASS.
-- Een expliciet aangevraagde audit mag ook zonder codewijziging plaatsvinden; `not_required` voor browser-QA bij een bron-/ZIP-only wijziging is geen vrijstelling van bron-, plugin- of thema-audits.
-- Toegangsweigering, ontbrekende toestemming/rollback voor risicowrites, open hoog/kritiek defect en ontbrekend verplicht runtimebewijs blijven echte stopvoorwaarden; haal deze poorten niet weg.
-- Leads-Registry en formele Leads-provenance gelden alleen voor Leads-routes, niet als preflight voor Designchecker of Website QA.
+- Gebruik de werkelijk beschikbare capability. Voor Design-owned GitHub-commands: `requests/command.json` op tijdelijke `runtime/**` branch; GitHub Actions publiceert `results/` als **run-scoped artifact**, nooit als commit op `main`. Controleer request-ID, head-SHA, omgeving en artifact voor elke claim; cleanup ruimt alleen tijdelijke runtimebranches op.
+- Verouderde bron: lees live opnieuw. Ontbrekende optionele tool: alternatief bewijs of alleen die test `blocked`/`not_run`. Verkeerde owner, manifest of niet-ready command: herstel die route, niet de hele workflow. Ongewijzigd target is geen reden om een expliciete audit over te slaan.
+- Behoud echte poorten: toestemming, bronintegriteit, autorisatie, preflight, rollback, hoog/kritiek defect en verplicht runtimebewijs. Geen ongeautoriseerde live writes, fictieve PASS of globale omzeiling van een blocker.

@@ -25,15 +25,18 @@ Vaste volgorde: `doel -> domain_owner -> live projectbron -> taakrelevante selec
 - De live `project-checklist`-bron `support/92-wordpress-deliverable-quality-profiles.md` laat de Website-QA-Skill vier optionele scenariofamilies selecteren: `WPQ-S` (website/journey/CRO), `WPQ-W` (webshop/aankoop), `WPQ-P` (plugin UX/lifecycle) en `WPQ-T` (theme content/journey). Een webshop activeert tevens de websitejourney; plugin- en themabroncode zonder aangetoonde gewijzigde siteflow activeert geen browser-GO.
 - Dit zijn **alleen** Checklist-evidenceankers, geen nieuwe controller-`change_type`-ID's, Designchecker-commando's, Design-owned source bindings of extra repositorybeleid. `webactueel-workflow` en de eigenaren behouden bestaande uitvoering en acceptatie; de harness levert uitsluitend expliciet aangevraagd read-only browserbewijs.
 
+- Een expliciet gevraagde audit selecteert alle toepasselijke kwaliteitsgebieden ook zonder voorafgaande codewijziging; de profielselector is planning, geen browser-Go of formele WCAG-/conversieclaim.
+
 ## ChatGPT-trigger
 
-Normale ChatGPT Web gebruikt standaard geen MCP. Na live bronverificatie schrijft ChatGPT `requests/command.json` via de bestaande GitHub-app. GitHub Actions voert het command uit en commit evidence terug naar `results/`. MCP blijft alleen een optionele backwards-compatible interface.
+Selecteer de werkelijk beschikbare capability; MCP is optioneel, geen verplichte route of standaardverbod. Voor een Design-owned direct command kan de bestaande GitHub-app na live bronverificatie `requests/command.json` op een tijdelijke `runtime/**`-branch schrijven. GitHub Actions voert read-only uit en levert `results/` als **run-scoped workflow-artifact**, niet als commit op `main`. Lees artifact, request-ID, head-SHA en omgeving terug vóór een claim. De bestaande cleanupworkflow verwijdert alleen afgeronde tijdelijke runtimebranches.
 
-## Harde poorten
+## Harde poorten en herstel
 
-- verkeerd owner/project/manifest-ID -> blokkeren;
-- niet-geverifieerde of >24 uur oude broncontext -> blokkeren;
-- projectbinding met `execution_status != ready` -> blokkeren;
-- commandroute met `status != ready` -> blokkeren;
-- Leads zonder Registry-preflight -> blokkeren;
-- formele Leads zonder actueel provenancecontract -> blokkeren.
+- Verkeerd owner/project/manifest-ID: blokkeer alleen de betreffende route en verifieer de correcte geregistreerde bron.
+- Niet-geverifieerde of verouderde broncontext: lees de live bron opnieuw; een oude cache is geen definitieve projectblokkade.
+- Projectbinding `execution_status != ready` of commandroute `status != ready`: voer **die route** pas uit nadat de geregistreerde blocker is opgelost.
+- Ontbrekende optionele tool, browser of scope-evidence: kies een beschikbare, gelijkwaardige read-only route; blijft het nodig, zet de **getroffen test** op `blocked`/`not_run`, niet het hele rapport op fictieve PASS.
+- Een expliciet aangevraagde audit mag ook zonder codewijziging plaatsvinden; `not_required` voor browser-QA bij een bron-/ZIP-only wijziging is geen vrijstelling van bron-, plugin- of thema-audits.
+- Toegangsweigering, ontbrekende toestemming/rollback voor risicowrites, open hoog/kritiek defect en ontbrekend verplicht runtimebewijs blijven echte stopvoorwaarden; haal deze poorten niet weg.
+- Leads-Registry en formele Leads-provenance gelden alleen voor Leads-routes, niet als preflight voor Designchecker of Website QA.

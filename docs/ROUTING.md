@@ -13,6 +13,7 @@
 - Het live Project Checklist-manifest is bronwaarheid; de geinstalleerde Skill heeft een apart SHA-manifest. Vergelijk **alle actieve bronhashes** voor een syncclaim. Verschillen eerst gecontroleerd reconciliëren met back-up, readback en regressietests; versienummers hoeven niet identiek te zijn.
 - Selecteer alleen wat van toepassing is: `WPQ-S` website/klantreis/CRO; `WPQ-W` webshop/kooproute; `WPQ-P` plugin UX/lifecycle; `WPQ-T` thema/editor/TH-01..16. Een webshop krijgt ook de sitejourney; een los ZIP of admin-only plugin krijgt geen fictieve publieke browser-/checkout-PASS.
 - Een expliciete audit mag zonder codewijziging. Selectie en een ingevuld reviewregister zijn **planning**, geen runtime-, conversie- of WCAG-Go.
+- Een complete review vereist bewijs voor dezelfde website/subsite, omgeving, artifactversie en geldig tijdstip. Helemaal N/A is geen completering; checkout en betaling vereisen passende echte runtime-/sandboxobservaties. Test alleen de geraakte scopes en houd uitgestelde site-evidence apart van een source-only plugin/thema. De Skill-verifier toetst ook de exact gedownloade ZIP-SHA tegen het live manifest.
 
 ## Uitvoering en veiligheid
 

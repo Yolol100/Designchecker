@@ -21,6 +21,22 @@ A website can look correct during a quick manual check while still containing br
 | Engineering quality | TypeScript, CI, contract tests, fixtures and bounded smoke checks |
 | Safety | Read-only execution and temporary run-scoped input/output |
 
+## What a website team gets
+
+Instead of relying on a last-minute visual check, a release reviewer can run the same categories of checks repeatedly and inspect the evidence behind a decision.
+
+| Question before launch | Evidence to inspect |
+| --- | --- |
+| Does the page behave correctly in a browser? | Playwright checks and captured browser state |
+| Did a layout unexpectedly change? | Screenshot comparisons, with human review of intended changes |
+| Are there detectable accessibility risks? | Automated axe-core findings, followed by manual testing |
+| Is there a performance concern? | Lighthouse **lab** measurements, not a promise about real visitors |
+| Is HTML markup valid? | Nu HTML Checker results |
+
+**How to review it:** [Run the checks locally](#quick-technical-review), inspect the [TypeScript engines](src/), then compare the [regression tests](tests/) against their implementation. The current CI results are visible in [GitHub Actions](https://github.com/Yolol100/Designchecker/actions).
+
+**Privacy and honesty:** This repository deliberately does **not** contain client screenshots or run artifacts. A real client QA result needs permission and a separate review; no example image here is presented as a successful live-site audit.
+
 ## Quick code-review route
 
 For a short technical review, see the [QA engines](src/), [regression tests](tests/), [CI workflows](.github/workflows/) and [toolkit contract](toolkit-contract.json). These are reusable source and verification paths; client-specific findings and screenshots remain outside the public default branch.

@@ -86,7 +86,7 @@ Designchecker is actively developed as a reusable QA evidence layer. Report repr
 
 ## About the developer
 
-I am **Andrew Baeten**, a Senior WordPress Developer & Web Designer with 10+ years of experience across **90+ WordPress projects** and ongoing management of **120+ websites and webshops**. My work spans WordPress, WooCommerce, Elementor, ACF, UX, performance, accessibility and automated QA.
+I am **Andrew Baeten**, a WordPress Developer & Web Designer with **10 years of WordPress experience**, **90 delivered projects** and ongoing management of **120 websites and webshops**. My work spans WordPress, WooCommerce, Elementor, ACF, UX, performance, accessibility and automated QA.
 
 [Portfolio cases](https://andrewbaeten.nl/category/cases) · [LinkedIn](https://www.linkedin.com/in/andrew-baeten-305a1478/) · [Email](mailto:info@andrewbaeten.nl)
 

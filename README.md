@@ -7,6 +7,14 @@ Designchecker turns manual website QA into a repeatable evidence workflow. It ca
 **Developer profile:** [Andrew Baeten](https://github.com/Yolol100) · [GitHub project index](https://github.com/Yolol100?tab=repositories)  
 **Useful for:** WordPress teams, web agencies, QA workflows and developers who need reproducible website-quality evidence.
 
+## What a website team can review
+
+**Before a release:** a developer runs a read-only check against an authorized website. The tool can collect browser errors, visual differences, automated accessibility findings, Lighthouse lab measurements and HTML validation results. A person then reviews the evidence and decides which findings matter.
+
+**What this means for a client:** fewer invisible surprises at handover and a repeatable way to discuss concrete defects instead of relying only on a quick visual glance. This is a **quality-review workflow**, not a promise of a particular Lighthouse score, WCAG certification or a perfect site.
+
+**For a quick technical assessment:** inspect the [test suite](tests/), [Playwright/QA implementation](src/) and [continuous integration](.github/workflows/). To see actual website presentation work rather than private client QA data, browse my [public WordPress case studies](https://andrewbaeten.nl/category/cases/).
+
 ## Why this project matters
 
 A website can look correct during a quick manual check while still containing browser, accessibility, performance or visual-regression problems. Designchecker combines several independent checks into one inspectable workflow so issues can be found consistently before release.

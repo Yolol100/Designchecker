@@ -4,7 +4,7 @@
 
 Designchecker turns manual website QA into a repeatable evidence workflow. It captures browser behaviour, accessibility signals, performance measurements, markup validation and visual-regression results without making changes to the target website.
 
-**Developer profile:** [Andrew Baeten](https://github.com/Yolol100) · [Portfolio cases](https://andrewbaeten.nl/category/cases)  
+**Developer profile:** [Andrew Baeten](https://github.com/Yolol100) · [GitHub project index](https://github.com/Yolol100?tab=repositories)  
 **Useful for:** WordPress teams, web agencies, QA workflows and developers who need reproducible website-quality evidence.
 
 ## Why this project matters
@@ -88,7 +88,7 @@ Designchecker is actively developed as a reusable QA evidence layer. Report repr
 
 I am **Andrew Baeten**, a WordPress Developer & Web Designer with **10 years of WordPress experience**, **90 delivered projects** and ongoing management of **120 websites and webshops**. My work spans WordPress, WooCommerce, Elementor, ACF, UX, performance, accessibility and automated QA.
 
-[Portfolio cases](https://andrewbaeten.nl/category/cases) · [LinkedIn](https://www.linkedin.com/in/andrew-baeten-305a1478/) · [Email](mailto:info@andrewbaeten.nl)
+[GitHub project index](https://github.com/Yolol100?tab=repositories) · [LinkedIn](https://www.linkedin.com/in/andrew-baeten-305a1478/) · [Email](mailto:info@andrewbaeten.nl)
 
 ## License
 

@@ -193,7 +193,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       const rect = el.getBoundingClientRect();
       return {
         tag: el.tagName.toLowerCase(),
-        label: (el.textContent ?? '').trim().replace(/\\s+/g, ' ').slice(0, 90),
+        label: (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 90),
         className: typeof el.className === 'string' ? el.className.slice(0, 130) : '',
         x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height),
         fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, lineHeight: cs.lineHeight,

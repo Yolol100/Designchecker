@@ -234,7 +234,7 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
 
 export async function withPage<T>(
   target: string,
-  options: { width?: number; height?: number; bypassCSP?: boolean } = {},
+  options: { width?: number; height?: number; bypassCSP?: boolean; reducedMotion?: 'reduce' | 'no-preference' } = {},
   run: (page: Page) => Promise<T>
 ): Promise<T> {
   const url = await assertPublicTarget(target);
@@ -243,7 +243,7 @@ export async function withPage<T>(
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       viewport: { width: options.width ?? 1440, height: options.height ?? 1000 },
-      reducedMotion: 'reduce',
+      reducedMotion: options.reducedMotion ?? 'reduce',
       bypassCSP: options.bypassCSP ?? false
     });
     const page = await context.newPage();

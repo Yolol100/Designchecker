@@ -19,7 +19,19 @@ async function run(label, fn) {
 }
 
 try {
-  await run('design', () => inspectDesign(target));
+  const design = await run('design', () => inspectDesign(target));
+  // Verify the new design evidence really survives a Chromium page.evaluate roundtrip.
+  // Access interstitials remain partial evidence, never a misleading PASS.
+  if (design.status === 'ok') {
+    for (const key of ['visualStyles', 'animationSamples', 'videoSamples']) {
+      if (!Array.isArray(design.data?.[key])) throw new Error(`Design evidence missing ${key}`);
+    }
+    if (design.data.motionPreference !== 'no-preference') throw new Error('Design inspection did not capture the normal-motion state');
+    if (design.data.visualStyles.length === 0) throw new Error('Design evidence has no computed style samples');
+    if (!design.data.visualStyles.some((sample) => typeof sample.fontFamily === 'string' && typeof sample.transitionDuration === 'string')) {
+      throw new Error('Computed style samples are incomplete');
+    }
+  }
   await run('a11y', () => scanAccessibility(target));
   const baseline = await run('baseline', () => captureDesignBaseline(target, temp));
   const first = baseline.data.captures[0]?.file;

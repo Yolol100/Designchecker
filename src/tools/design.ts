@@ -123,7 +123,7 @@ export function collectStructuredSocialLinks(jsonLdBlocks: string[], pageHostnam
 }
 
 export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
-  const data = await withPage(target, {}, async (page) => {
+  const data = await withPage(target, { reducedMotion: 'no-preference' }, async (page) => {
     const accessBarrier = await detectPublicPageAccessBarrier(page);
     if (accessBarrier.blocked) {
       return {
@@ -187,14 +187,46 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       return socialHosts.some((socialHost) => host === socialHost || host.endsWith('.' + socialHost));
     });
     const forms = [...document.querySelectorAll('form')].slice(0, 20).map((form) => ({ fields: form.querySelectorAll('input,select,textarea').length, requiredFields: form.querySelectorAll('[required]').length, submitControls: form.querySelectorAll('button[type="submit"],input[type="submit"]').length }));
+    const observedElements = [...document.querySelectorAll('header,nav,main,section,footer,h1,h2,h3,button,a,[role="button"],video')].filter(visible).slice(0, 120);
+    const visualStyles = observedElements.map((el) => {
+      const cs = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return {
+        tag: el.tagName.toLowerCase(),
+        label: (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 90),
+        className: typeof el.className === 'string' ? el.className.slice(0, 130) : '',
+        x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height),
+        fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, lineHeight: cs.lineHeight,
+        letterSpacing: cs.letterSpacing, color: cs.color, backgroundColor: cs.backgroundColor,
+        backgroundImage: cs.backgroundImage.slice(0, 350), opacity: cs.opacity, transform: cs.transform,
+        transitionProperty: cs.transitionProperty, transitionDuration: cs.transitionDuration,
+        animationName: cs.animationName, animationDuration: cs.animationDuration
+      };
+    });
+    const animationSamples = document.getAnimations().slice(0, 80).map((animation) => ({
+      playState: animation.playState,
+      currentTime: typeof animation.currentTime === 'number' ? animation.currentTime : null,
+      duration: animation.effect?.getComputedTiming().duration ?? null,
+      endTime: animation.effect?.getComputedTiming().endTime ?? null
+    }));
+    const videoSamples = [...document.querySelectorAll('video')].slice(0, 30).map((video) => ({
+      currentTime: video.currentTime,
+      paused: video.paused,
+      muted: video.muted,
+      autoplay: video.autoplay,
+      loop: video.loop,
+      readyState: video.readyState,
+      poster: video.poster ? video.poster.slice(0, 350) : null
+    }));
     const body = getComputedStyle(document.body);
     return {
       title: document.title,
       language: document.documentElement.lang || null,
+      motionPreference: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduce' : 'no-preference',
       rootCssVariableCount: Object.keys(rootVars).length,
       rootCssVariables: Object.fromEntries(Object.entries(rootVars).slice(0, 150)),
       body: { fontFamily: body.fontFamily, fontSize: body.fontSize, lineHeight: body.lineHeight, color: body.color, backgroundColor: body.backgroundColor },
-      headings, buttons, forms,
+      headings, buttons, forms, visualStyles, animationSamples, videoSamples,
       links,
       externalLinks,
       socialLinks,

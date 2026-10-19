@@ -14,7 +14,9 @@ test('Chrome DevTools MCP is optional, version-pinned and runs isolated', () => 
     '--headless',
     '--isolated',
     '--no-usage-statistics',
-    '--no-performance-crux'
+    '--no-performance-crux',
+    '--file-navigations=false',
+    '--redact-network-headers'
   ]);
 });
 

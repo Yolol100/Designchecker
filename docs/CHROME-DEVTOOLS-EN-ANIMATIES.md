@@ -20,6 +20,7 @@ De bestaande `baseline`-screenshots schakelen animaties bewust uit voor stabiele
 ## Veiligheidsgrenzen
 - De Designchecker-route beschermt publieke targets en blokkeert schrijfverzoeken op netwerkverkeer.
 - De **afzonderlijke Chrome DevTools MCP-server** heeft die Designchecker-read-only-garantie niet: gebruik een geisoleerde browser zonder priveaccounts en controleer agenttoestemmingen.
+- De MCP-config blokkeert navigatie naar `file:`-URL's en redigeert bepaalde gevoelige netwerkheaders. Dit is **geen** volledig read-only beleid of filesystem-sandbox.
 - Deze configuratie installeert geen ChatGPT-plugin en koppelt Chrome niet rechtstreeks aan een normale ChatGPT-webchat.
 - Bewaar geen klantbestanden, tokens of scans in de publieke standaardbranch. Tests of screenshots bewijzen niet vanzelf productie- of pixel-perfecte kwaliteit.
 

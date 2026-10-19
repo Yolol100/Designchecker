@@ -15,7 +15,7 @@
 ## Wat bewijst de scan?
 De bestaande Designchecker `design`-route verzamelt nu aanvullend maximaal **120** zichtbare elementstijlen (fonts, kleuren, positie, achtergrond, CSS-transities/animaties), maximaal **80** actieve Web Animations en maximaal **30** videostatussen. Dit zijn **momentopnamen**: geen bewijs van een hover-animatie, autoplay, scroll-trigger of Swiper-configuratie. Die interacties moeten apart daadwerkelijk worden getest.
 
-De bestaande `baseline`-screenshots schakelen animaties bewust uit voor stabiele pixelvergelijkingen; gebruik andere opnamen voor bewegingsanalyse.
+De Design-`design`-inspectie laadt de pagina met normale beweging (`prefers-reduced-motion: no-preference`) en vermeldt deze instelling in `motionPreference`. Daardoor zijn actieve animaties beter detecteerbaar; een momentopname bewijst nog steeds geen volledige hover-/scrolltransitie. De bestaande `baseline`-screenshots schakelen animaties bewust uit voor stabiele pixelvergelijkingen.
 
 ## Veiligheidsgrenzen
 - De Designchecker-route beschermt publieke targets en blokkeert schrijfverzoeken op netwerkverkeer.

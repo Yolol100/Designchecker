@@ -123,7 +123,7 @@ export function collectStructuredSocialLinks(jsonLdBlocks: string[], pageHostnam
 }
 
 export async function inspectDesign(target: string, owner: Owner = 'design', toolName = 'design_inspect_page') {
-  const data = await withPage(target, {}, async (page) => {
+  const data = await withPage(target, { reducedMotion: 'no-preference' }, async (page) => {
     const accessBarrier = await detectPublicPageAccessBarrier(page);
     if (accessBarrier.blocked) {
       return {
@@ -222,6 +222,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
     return {
       title: document.title,
       language: document.documentElement.lang || null,
+      motionPreference: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduce' : 'no-preference',
       rootCssVariableCount: Object.keys(rootVars).length,
       rootCssVariables: Object.fromEntries(Object.entries(rootVars).slice(0, 150)),
       body: { fontFamily: body.fontFamily, fontSize: body.fontSize, lineHeight: body.lineHeight, color: body.color, backgroundColor: body.backgroundColor },

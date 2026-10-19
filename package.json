@@ -17,7 +17,8 @@
     "dev": "tsx src/cli.ts",
     "setup:browsers": "playwright install chromium",
     "config:check": "node scripts/sync-config.mjs",
-    "config:sync": "node scripts/sync-config.mjs --write"
+    "config:sync": "node scripts/sync-config.mjs --write",
+    "devtools:mcp": "npx --yes chrome-devtools-mcp@1.11.0 --headless --isolated --no-usage-statistics --no-performance-crux"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

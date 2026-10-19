@@ -216,7 +216,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       autoplay: video.autoplay,
       loop: video.loop,
       readyState: video.readyState,
-      poster: video.poster || null
+      poster: video.poster ? video.poster.slice(0, 350) : null
     }));
     const body = getComputedStyle(document.body);
     return {

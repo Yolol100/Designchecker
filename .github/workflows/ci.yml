@@ -36,8 +36,3 @@ jobs:
         run: node --check scripts/run-healthcheck.mjs
       - run: npx playwright install --with-deps chromium
       - run: npm run smoke
-      - name: Probe optional Chrome DevTools executable (temporary validation)
-        run: |
-          npx --yes chrome-devtools-mcp@1.11.0 --headless --isolated --no-usage-statistics --no-performance-crux --file-navigations=false --redact-network-headers --help > /tmp/chrome-devtools-help.txt
-          grep -q -- '--headless' /tmp/chrome-devtools-help.txt
-          grep -q -- '--isolated' /tmp/chrome-devtools-help.txt

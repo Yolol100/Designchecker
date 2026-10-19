@@ -1,42 +1,26 @@
-# Gratis browsertools voor Designchecker
+# Chrome DevTools en Designchecker
 
-## Status en taken
-- **Playwright**: al aanwezig in `package.json` + lockfile; controleert de echte webpagina via Chromium.
-- **Pixelmatch + Sharp**: al aanwezig; vergelijkt screenshots met gelijke afmetingen.
-- **Chrome DevTools MCP**: **optionele lokale koppeling**, vastgezet op `chrome-devtools-mcp@1.11.0` via `.mcp.json`. Hiervoor is **geen wijziging van package-lock.json** nodig. Via `npx` wordt de software pas bij de eerste start gedownload.
-- **GSAP**: animatiebibliotheek voor het **doelthema / frontend**, niet voor de read-only inspectie-repo. Voeg GSAP en ScrollTrigger alleen aan het aparte klantthema toe wanneer de bronanimatie dit vereist.
+## Wat is daadwerkelijk aanwezig?
+- **Playwright** is al geinstalleerd via `package.json`/`package-lock.json`: browserinspectie en screenshots.
+- **Pixelmatch + Sharp** zijn al geinstalleerd: pixelverschillen tussen gelijkwaardige screenshots.
+- **Chrome DevTools MCP** is alleen **optioneel geconfigureerd** in `.mcp.json` (`chrome-devtools-mcp@1.11.0`). Een geschikte MCP-client start het op aanvraag via `npx`; het is niet op je pc geinstalleerd door deze commit.
+- Er zijn **geen** nieuwe npm-dependencies en geen tweede launcher toegevoegd.
 
-## Installeren / gebruiken (lokaal in VS Code)
-1. Installeer Node.js LTS en Chrome.
-2. Open de uitgecheckte Designchecker-map in VS Code.
-3. Vertrouw de workspace pas nadat je de instellingen hebt bekeken.
-4. Kies **MCP: List Servers** of **Chat: Open Customizations > MCP Servers**, en start `chrome-devtools` uit `.mcp.json`.
-5. Alternatief: `npm run devtools:mcp` om dezelfde server in een MCP-geschikte terminalclient te starten.
-6. Voor de bestaande Designchecker-tests: `npm ci`, `npm run build`, `npm test`, `npx playwright install chromium`, `npm run smoke`.
+## Gebruik
+1. Controleer eerst het `.mcp.json`-bestand en vertrouw de repository alleen als je de server wilt starten.
+2. Open de repository in een MCP-geschikte editor, zoals VS Code met een geschikte agent, en start de server via **MCP: List Servers**.
+3. Voor de bestaande scanner: `npm ci`, `npm run setup:browsers`, `npm run build`, `npm test`, `npm run smoke`.
+4. Na het bouwen: `node dist/src/cli.js design https://example.com` (publieke pagina).
 
-`chrome-devtools-mcp` is **niet** automatisch een ChatGPT-plugin. Een ondersteunde MCP-client of lokale agent moet de server actief starten. De instellingen zijn repo-scope, niet automatisch op iemands pc geinstalleerd.
+## Wat bewijst de scan?
+De bestaande Designchecker `design`-route verzamelt nu aanvullend maximaal **120** zichtbare elementstijlen (fonts, kleuren, positie, achtergrond, CSS-transities/animaties), maximaal **80** actieve Web Animations en maximaal **30** videostatussen. Dit zijn **momentopnamen**: geen bewijs van een hover-animatie, autoplay, scroll-trigger of Swiper-configuratie. Die interacties moeten apart daadwerkelijk worden getest.
 
-## Zelf een publieke website onderzoeken
-```sh
-npm ci
-npm run setup:browsers
-npm run build
-node dist/src/cli.js design https://example.com
-node dist/src/cli.js baseline https://example.com results/evidence/local-baseline
-```
-De standaard `design`-inspectie verzamelt naast layout en CTA's nu ook fonts, kleurwaarden, CSS-transities, de Web Animations API, videostatus, Swiper-instellingen (wanneer zichtbaar) en beperkte hover-bewijssamples. Dit **meet** zaken, maar bewijst niet automatisch dat een bepaalde overgang zichtbaar is afgespeeld. De screenshots van `baseline` schakelen animaties bewust uit voor stabiele pixeldiffs; animatie-inventarisatie is een aparte bewijssoort.
+De bestaande `baseline`-screenshots schakelen animaties bewust uit voor stabiele pixelvergelijkingen; gebruik andere opnamen voor bewegingsanalyse.
 
-## Grenzen en veiligheid
-- Behoud de read-only netwerkbeperking (POST/PUT/PATCH/DELETE niet uitvoeren).
-- Scan alleen publiek toegankelijke/expliciet geautoriseerde websites. Respecteer gebruiksvoorwaarden en beeldrechten.
-- De Chrome DevTools MCP-server heeft potentieel lees- en schrijfbevoegdheid in zijn **eigen geisoleerde browser**. Gebruik niet je persoonlijke browserprofiel met ingelogde accounts.
-- Schrijf geen klantdoelen, screenshots of tokens naar `main`: Designchecker gebruikt tijdelijke runtime-branches en run-artifacts.
-- Een `npm ci`/groene CI bewijst nog geen pixel-perfecte website. Vergelijk gelijkwaardige viewports en interactiestaten en beoordeel verschillen.
-- LocalWP is een **aparte** lokale WordPress-installatie; verbinding op een gebruikers-pc vereist nog een geautoriseerde desktopagent. De publieke Designchecker URL-validator laat lokale/private doelen bewust niet toe.
+## Veiligheidsgrenzen
+- De Designchecker-route beschermt publieke targets en blokkeert schrijfverzoeken op netwerkverkeer.
+- De **afzonderlijke Chrome DevTools MCP-server** heeft die Designchecker-read-only-garantie niet: gebruik een geisoleerde browser zonder priveaccounts en controleer agenttoestemmingen.
+- Deze configuratie installeert geen ChatGPT-plugin en koppelt Chrome niet rechtstreeks aan een normale ChatGPT-webchat.
+- Bewaar geen klantbestanden, tokens of scans in de publieke standaardbranch. Tests of screenshots bewijzen niet vanzelf productie- of pixel-perfecte kwaliteit.
 
-## Referenties
-- https://github.com/ChromeDevTools/chrome-devtools-mcp
-- https://code.visualstudio.com/docs/agent-customization/mcp-servers
-- https://playwright.dev/
-- https://github.com/mapbox/pixelmatch
-- https://gsap.com/docs/v3/Plugins/ScrollTrigger/
+Bronnen: https://github.com/ChromeDevTools/chrome-devtools-mcp en https://code.visualstudio.com/docs/agent-customization/mcp-servers

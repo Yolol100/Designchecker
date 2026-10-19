@@ -26,6 +26,7 @@ try {
     for (const key of ['visualStyles', 'animationSamples', 'videoSamples']) {
       if (!Array.isArray(design.data?.[key])) throw new Error(`Design evidence missing ${key}`);
     }
+    if (design.data.motionPreference !== 'no-preference') throw new Error('Design inspection did not capture the normal-motion state');
     if (design.data.visualStyles.length === 0) throw new Error('Design evidence has no computed style samples');
     if (!design.data.visualStyles.some((sample) => typeof sample.fontFamily === 'string' && typeof sample.transitionDuration === 'string')) {
       throw new Error('Computed style samples are incomplete');

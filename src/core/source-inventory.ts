@@ -122,7 +122,7 @@ export async function collectSourceAssetInventory(page: Page) {
       }
       if (backgroundCount >= 70) break;
     }
-    return rows.slice(0, 300);
+    return rows;
   });
   return buildSourceAssetInventory(page.url(), candidates);
 }

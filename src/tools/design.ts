@@ -4,6 +4,7 @@ import { chromium } from 'playwright';
 import { evidence } from '../core/evidence.js';
 import { STABLE_SCREENSHOT_OPTIONS, SCREENSHOT_STABILITY_NOTE } from '../core/screenshot.js';
 import { assertSafeTarget } from '../core/url.js';
+import { collectSourceAssetInventory } from '../core/source-inventory.js';
 import { assessRenderedPageViability, detectPublicPageAccessBarrier, hydrateLazyContentForVisualCapture, installNetworkGuard, navigateReadOnlyPage, VISUAL_READINESS_POLICY, withPage } from '../core/browser.js';
 import type { Owner, ViewportSpec } from '../core/types.js';
 
@@ -237,6 +238,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
     };
     }, [...SOCIAL_HOSTS]);
 
+    const sourceAssets = await collectSourceAssetInventory(page);
     const jsonLdBlocks = await page.locator('script[type="application/ld+json"]').allTextContents();
     const structuredSocialLinks = collectStructuredSocialLinks(jsonLdBlocks, new URL(page.url()).hostname);
     const socialLinkCandidates = new Map<string, Record<string, unknown>>();
@@ -254,6 +256,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       accessBarrier: null,
       renderViability,
       ...rendered,
+      sourceAssets,
       structuredSocialLinks,
       socialLinkCandidates: [...socialLinkCandidates.values()],
       counts: {
@@ -275,6 +278,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
       ...(blocked ? ['Access/security interstitial detected; rendered prospect evidence is blocked and must remain unverified.'] : []),
       ...(unusableRender ? ['Controlled render contains insufficient meaningful visible content after a bounded hydration retry; treat page-level visual evidence as unverified and do not infer a prospect site problem from the empty render.'] : []),
       'Rendered-page inspection plus official-site JSON-LD identity-link inspection only.',
+      'Source asset evidence is bounded, query-redacted and not a complete site crawl, media license or WordPress attachment identity.',
       'Social candidates may come from visible rendered anchors or Organization-like JSON-LD sameAs values whose url/@id resolves to the inspected site. Visiting the linked profile is still required to verify current public activity.',
       'Does not prove usability, conversion uplift, WCAG conformance, or correct behavior on all states/devices.'
     ]

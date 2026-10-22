@@ -40,7 +40,9 @@ export function extractCssBackgroundUrls(value: string): string[] {
 
 export function normalizeSourceAssetUrl(raw: string, baseUrl: string): { url: string; queryStripped: boolean } | null {
   try {
-    const url = new URL(raw.trim(), baseUrl);
+    const candidate = raw.trim();
+    if (!candidate || candidate.startsWith('#') || candidate.startsWith('?')) return null;
+    const url = new URL(candidate, baseUrl);
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
     const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
     if (host === 'localhost' || host.endsWith('.localhost') || isBlockedAddress(host)) return null;

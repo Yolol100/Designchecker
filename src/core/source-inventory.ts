@@ -40,6 +40,7 @@ export function extractCssBackgroundUrls(value: string): string[] {
 
 export function normalizeSourceAssetUrl(raw: string, baseUrl: string): { url: string; queryStripped: boolean } | null {
   try {
+    if (raw.length > 2048) return null;
     const candidate = raw.trim();
     if (!candidate || candidate.startsWith('#') || candidate.startsWith('?')) return null;
     const url = new URL(candidate, baseUrl);
@@ -103,15 +104,17 @@ export async function collectSourceAssetInventory(page: Page) {
       return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
     };
     for (const img of [...document.images].slice(0, 150)) {
-      rows.push({ kind: 'image', rawUrl: img.currentSrc || img.src, alt: img.alt,
+      const imageUrl = img.currentSrc || img.getAttribute('src') || '';
+      if (!imageUrl || imageUrl.length > 2048) continue;
+      rows.push({ kind: 'image', rawUrl: imageUrl, alt: img.alt,
         width: img.naturalWidth, height: img.naturalHeight, visible: isVisible(img) });
     }
     for (const video of [...document.querySelectorAll('video')].slice(0, 30)) {
-      if (video.poster) rows.push({ kind: 'video_poster', rawUrl: video.poster, visible: isVisible(video) });
+      if (video.poster && video.poster.length <= 2048) rows.push({ kind: 'video_poster', rawUrl: video.poster, visible: isVisible(video) });
     }
     for (const source of [...document.querySelectorAll('picture source[srcset]')].slice(0, 60)) {
       const firstCandidate = (source.getAttribute('srcset') ?? '').split(',')[0]?.trim().split(/\s+/)[0] ?? '';
-      if (firstCandidate) rows.push({ kind: 'picture_source', rawUrl: firstCandidate,
+      if (firstCandidate && firstCandidate.length <= 2048) rows.push({ kind: 'picture_source', rawUrl: firstCandidate,
         media: source.getAttribute('media') ?? '', visible: isVisible(source.parentElement ?? source) });
     }
     let backgroundCount = 0;
@@ -119,7 +122,7 @@ export async function collectSourceAssetInventory(page: Page) {
       if (!isVisible(element)) continue;
       for (const match of getComputedStyle(element).backgroundImage.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi)) {
         const rawUrl = (match[1] ?? match[2] ?? match[3] ?? '').trim();
-        if (rawUrl) rows.push({ kind: 'background', rawUrl, visible: true });
+        if (rawUrl && rawUrl.length <= 2048) rows.push({ kind: 'background', rawUrl, visible: true });
         if (++backgroundCount >= 70) break;
       }
       if (backgroundCount >= 70) break;

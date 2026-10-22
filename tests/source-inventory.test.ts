@@ -24,7 +24,8 @@ test('unsafe or non-web asset references do not become evidence', () => {
   for (const value of [
     'data:image/png;base64,AA==', 'javascript:alert(1)', 'file:///etc/passwd',
     'http://localhost/image.png', 'http://127.0.0.1/a', 'http://10.1.2.3/x',
-    'https://user:secret@example.com/image.png', 'https://[::1]/x', 'http://[not-ipv6]/'
+    'https://user:secret@example.com/image.png', 'https://[::1]/x', 'http://[not-ipv6]/',
+    '', '   ', '#anchor', '?token=private'
   ]) {
     assert.equal(normalizeSourceAssetUrl(value, 'https://example.com/page'), null, value);
   }

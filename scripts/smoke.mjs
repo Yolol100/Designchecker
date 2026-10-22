@@ -27,6 +27,8 @@ try {
       if (!Array.isArray(design.data?.[key])) throw new Error(`Design evidence missing ${key}`);
     }
     if (design.data.motionPreference !== 'no-preference') throw new Error('Design inspection did not capture the normal-motion state');
+    if (!Array.isArray(design.data.sourceAssets?.assets) || !Array.isArray(design.data.sourceAssets?.limits)) throw new Error('Design media inventory was not captured');
+    if (design.data.sourceAssets.assets.length > 120) throw new Error('Design media inventory exceeds its declared bound');
     if (design.data.visualStyles.length === 0) throw new Error('Design evidence has no computed style samples');
     if (!design.data.visualStyles.some((sample) => typeof sample.fontFamily === 'string' && typeof sample.transitionDuration === 'string')) {
       throw new Error('Computed style samples are incomplete');

@@ -49,6 +49,10 @@ Instead of relying on a last-minute visual check, a release reviewer can run the
 
 For a short technical review, see the [QA engines](src/), [regression tests](tests/), [CI workflows](.github/workflows/) and [toolkit contract](toolkit-contract.json). These are reusable source and verification paths; client-specific findings and screenshots remain outside the public default branch.
 
+## Optionele AI-ondersteunde QA-triage (pilot)
+
+De [AI-ondersteunde triageprocedure](docs/AI-ASSISTED-QA-TRIAGE.md) beschrijft hoe een reviewer hypotheses kan laten formuleren over bestaande QA-fouten. Dit is uitsluitend een voorstel voor een afgebakende pilot met gesaniteerde fixtures: geen nieuwe CI-feature, geen automatische bugfix, geen WCAG-certificering en geen Go/No-Go.
+
 ## Quick technical review
 
 ```bash

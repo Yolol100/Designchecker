@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { sha256Json } from "./artifacts.js";
 import { mergeObservation } from "./supplemental-merge.js";
+import { summarizeLighthouseRuns } from "./lighthouse-summary.js";
 
 const requestPath = process.argv[2];
 if (!requestPath) throw new Error("request path ontbreekt");
@@ -52,16 +53,38 @@ try {
   addObservation({ id: "HTML-VNU", category: "frontend", title: "Lokale Nu HTML-validatie", outcome: vnuSummary.error_count ? "observed_issue" : vnuSummary.warning_count ? "needs_interpretation" : "observed_ok", source_refs: ["support/82-tool-en-browsermatrix.md", "active/02-frontend-responsive-accessibility.md"], evidence_ids: ["EV-HTML-VNU"], data: vnuSummary, note: "Markupvalidator-signalen zijn diagnostiek; Website QA bepaalt relevantie tegen de actieve bron en gebruikersflow." });
 } catch {}
 
-let lighthouseSummary = null;
-try {
-  const files = (await fs.readdir(".lighthouseci")).filter((name) => /^lhr-.*\.json$/.test(name)).sort();
-  if (files.length) {
-    const parsed = JSON.parse(await fs.readFile(path.join(".lighthouseci", files[0]), "utf8"));
-    lighthouseSummary = { performance: parsed.categories?.performance?.score ?? null, accessibility: parsed.categories?.accessibility?.score ?? null, best_practices: parsed.categories?.["best-practices"]?.score ?? null, seo: parsed.categories?.seo?.score ?? null, lighthouse_version: parsed.lighthouseVersion || null };
-    addEvidence({ id: "EV-LIGHTHOUSE-LAB", type: "report", source: "runtime:lighthouse-lab", created_at: now, environment: "github-actions", scope: payload.final_url, evidence_level: "controlled_runtime", execution_mode: "synthetic", sha256: sha256Json(lighthouseSummary) });
-    addObservation({ id: "PERF-LIGHTHOUSE-LAB", category: "performance", title: "Lighthouse labdiagnose uitgevoerd", outcome: "needs_interpretation", source_refs: ["active/06-wordpress-elementor-en-performance.md", "support/82-tool-en-browsermatrix.md"], evidence_ids: ["EV-LIGHTHOUSE-LAB"], data: lighthouseSummary, note: "Lighthouse is synthetische labdiagnose en geen velddata/Core Web Vitals-productieclaim." });
+async function readLighthouseProfile(profile) {
+  const folder = profile === "desktop" ? ".lighthouseci-desktop" : ".lighthouseci";
+  let files;
+  try {
+    files = (await fs.readdir(folder)).filter((name) => /^lhr-.*\.json$/.test(name)).sort();
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
   }
-} catch {}
+  const reports = await Promise.all(files.map(async (name) =>
+    JSON.parse(await fs.readFile(path.join(folder, name), "utf8"))
+  ));
+  return summarizeLighthouseRuns(reports, profile);
+}
+
+const mobileLighthouse = await readLighthouseProfile("mobile");
+const desktopLighthouse = await readLighthouseProfile("desktop");
+if (Boolean(mobileLighthouse) !== Boolean(desktopLighthouse)) {
+  throw new Error("Lighthouse requires BOTH mobile and desktop run evidence");
+}
+let lighthouseSummary = null;
+if (mobileLighthouse && desktopLighthouse) {
+  lighthouseSummary = {
+    methodology: "three-run median with minimum, maximum and spread per profile",
+    mobile: mobileLighthouse,
+    desktop: desktopLighthouse,
+    lab_not_field_data: true,
+    production_cwv_certified: false,
+  };
+  addEvidence({ id: "EV-LIGHTHOUSE-LAB", type: "report", source: "runtime:lighthouse-lab", created_at: now, environment: "github-actions", scope: payload.final_url, evidence_level: "controlled_runtime", execution_mode: "synthetic", sha256: sha256Json(lighthouseSummary) });
+  addObservation({ id: "PERF-LIGHTHOUSE-LAB", category: "performance", title: "Lighthouse mobiel/desktop labdiagnose (mediaan en spreiding)", outcome: "needs_interpretation", source_refs: ["active/06-wordpress-elementor-en-performance.md", "support/82-tool-en-browsermatrix.md"], evidence_ids: ["EV-LIGHTHOUSE-LAB"], data: lighthouseSummary, note: "Drie metingen per profiel. Synthetische labdata zijn geen velddata/Core Web Vitals-productieclaim." });
+}
 
 payload.supplemental_tooling = { schema_version: supplemental.schema_version, cross_browser_requested: crossRuns.map((run) => run.browser), cross_browser_completed: successful.map((run) => run.browser), bounded_link_scan: supplemental.link_scan ? { links_tested: supplemental.link_scan.links_tested, broken_count: supplemental.link_scan.broken_count } : null, local_vnu: vnuSummary, lighthouse_lab: lighthouseSummary, limitations: supplemental.limitations || [] };
 payload.limitations.push(...(supplemental.limitations || []));

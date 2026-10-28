@@ -67,3 +67,18 @@ test("rejects NaN, negative and out-of-range performance scores", () => {
     assert.throws(() => summarizeLighthouseRuns(invalid, "mobile"), /invalid performance_score|score must/);
   }
 });
+
+
+test("full runtime workflow collects both independent three-run profiles", async () => {
+  const fs = await import("node:fs/promises");
+  const workflow = await fs.readFile(
+    new URL("../../../.github/workflows/run-website-qa.yml", import.meta.url), "utf8");
+  const merger = await fs.readFile(
+    new URL("../src/append-supplemental.js", import.meta.url), "utf8");
+  assert.equal((workflow.match(/--numberOfRuns=3/g) || []).length, 2);
+  assert.match(workflow, /--settings\.preset=desktop/);
+  assert.match(workflow, /mv \.lighthouseci \.lighthouseci-desktop/);
+  assert.match(merger, /summarizeLighthouseRuns\(reports, profile\)/);
+  assert.match(merger, /Lighthouse requires BOTH mobile and desktop run evidence/);
+  assert.doesNotMatch(workflow, /--numberOfRuns=1/);
+});

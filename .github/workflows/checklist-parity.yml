@@ -34,6 +34,8 @@ jobs:
         run: test "$(cat legacy/checklist/UPSTREAM-COMMIT)" = "25bf9fd8ccefdd06cb4e7adf36e3ab332c76b854"
       - name: Install exact frozen dependencies
         run: npm ci --prefix legacy/checklist --ignore-scripts --no-audit --no-fund
+      - name: Reject high-severity legacy npm advisories
+        run: npm audit --prefix legacy/checklist --audit-level=high --no-fund
       - name: Install Chromium
         run: node legacy/checklist/node_modules/playwright/cli.js install --with-deps chromium
       - name: Syntax and contract tests

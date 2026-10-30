@@ -76,13 +76,18 @@ jobs:
           curl -fsSL -H "Accept: application/octet-stream" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/validator/validator/releases/assets/${VNU_ASSET_ID}" -o tools/vnu.jar
           echo "${VNU_SHA256}  tools/vnu.jar" | sha256sum -c -
           java -jar tools/vnu.jar --exit-zero-always --stdout --format json "$TARGET_URL" > reports/vnu.json
-      - name: Run Lighthouse lab diagnosis
+      - name: Run separate three-sample Lighthouse desktop and mobile lab profiles
         if: steps.request.outputs.level == 'full' || steps.request.outputs.task_type == 'release_verification'
         env:
           TARGET_URL: ${{ steps.request.outputs.target_url }}
         run: |
+          set -euo pipefail
           export CHROME_PATH="$(node -e "console.log(require('./legacy/checklist/node_modules/playwright').chromium.executablePath())")"
-          legacy/checklist/node_modules/.bin/lhci collect --url="$TARGET_URL" --numberOfRuns=1 --settings.chromeFlags="--no-sandbox"
+          legacy/checklist/node_modules/.bin/lhci collect --url="$TARGET_URL" --numberOfRuns=3 --settings.preset=desktop --settings.chromeFlags="--no-sandbox"
+          [ "$(find .lighthouseci -maxdepth 1 -type f -name 'lhr-*.json' | wc -l)" -eq 3 ]
+          mv .lighthouseci .lighthouseci-desktop
+          legacy/checklist/node_modules/.bin/lhci collect --url="$TARGET_URL" --numberOfRuns=3 --settings.chromeFlags="--no-sandbox"
+          [ "$(find .lighthouseci -maxdepth 1 -type f -name 'lhr-*.json' | wc -l)" -eq 3 ]
       - name: Merge supplemental evidence
         run: node legacy/checklist/src/append-supplemental.js "${{ steps.request.outputs.request_path }}"
       - name: Validate raw evidence contract

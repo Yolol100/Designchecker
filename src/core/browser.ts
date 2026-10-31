@@ -7,7 +7,7 @@ export const VISUAL_READINESS_POLICY = {
   load: 'best-effort',
   fonts: 'ready',
   animationFrames: 2,
-  lazyContentHydration: 'scroll-pass'
+  lazyContentHydration: 'opt-in-scroll-pass'
 } as const;
 
 export type PublicPageAccessBarrierKind = 'cloudflare_challenge' | 'access_denied' | 'bot_verification';
@@ -208,6 +208,17 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
     previousHeight = currentHeight;
   }
 
+  // Restore the scroll source as well as the viewport before taking a baseline.
+  // Scroll-sensitive sites can retain sticky-header state after a scroll pass.
+  await page.evaluate(() => {
+    const root = document.scrollingElement ?? document.documentElement;
+    root.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
+    window.dispatchEvent(new Event('scroll'));
+  });
+  await page.waitForTimeout(350);
   await page.evaluate(async () => {
     window.scrollTo(0, 0);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -216,7 +227,8 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
   const after = await page.evaluate(() => ({
     scrollHeight: document.scrollingElement?.scrollHeight ?? document.documentElement.scrollHeight,
     imageCount: document.images.length,
-    incompleteImageCount: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length
+    incompleteImageCount: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length,
+    scrollY: window.scrollY
   }));
 
   return {
@@ -227,7 +239,8 @@ export async function hydrateLazyContentForVisualCapture(page: Page): Promise<Re
     initialImageCount: before.imageCount,
     finalImageCount: after.imageCount,
     initialIncompleteImageCount: before.incompleteImageCount,
-    finalIncompleteImageCount: after.incompleteImageCount
+    finalIncompleteImageCount: after.incompleteImageCount,
+    finalScrollY: after.scrollY
   };
 }
 

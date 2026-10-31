@@ -75,10 +75,17 @@ test("full runtime workflow collects both independent three-run profiles", async
     new URL("../../../.github/workflows/run-website-qa.yml", import.meta.url), "utf8");
   const merger = await fs.readFile(
     new URL("../src/append-supplemental.js", import.meta.url), "utf8");
-  assert.equal((workflow.match(/--numberOfRuns=3/g) || []).length, 2);
-  assert.match(workflow, /--settings\.preset=desktop/);
-  assert.match(workflow, /mv \.lighthouseci \.lighthouseci-desktop/);
+  const runner = await fs.readFile(
+    new URL("../../../scripts/run-lighthouse-six.sh", import.meta.url), "utf8");
+  assert.match(workflow, /bash scripts\/run-lighthouse-six\.sh/);
+  assert.match(workflow, /npm audit --audit-level=high/);
+  assert.match(runner, /for profile in desktop mobile/);
+  assert.match(runner, /for index in 1 2 3/);
+  assert.match(runner, /--preset=desktop/);
+  assert.match(runner, /\.lighthouseci-desktop/);
+  assert.match(runner, /\.lighthouseci/);
+  assert.match(runner, /summarizeLighthouseRuns\(reports, profile\)/);
   assert.match(merger, /summarizeLighthouseRuns\(reports, profile\)/);
   assert.match(merger, /Lighthouse requires BOTH mobile and desktop run evidence/);
-  assert.doesNotMatch(workflow, /--numberOfRuns=1/);
+  assert.doesNotMatch(workflow, /lhci collect|--numberOfRuns=1/);
 });

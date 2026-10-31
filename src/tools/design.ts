@@ -285,7 +285,7 @@ export async function inspectDesign(target: string, owner: Owner = 'design', too
   });
 }
 
-export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS, owner: Owner = 'design', toolName = 'design_capture_baseline') {
+export async function captureDesignBaseline(target: string, outputDir: string, viewports = DEFAULT_VIEWPORTS, owner: Owner = 'design', toolName = 'design_capture_baseline', hydrateLazyContent = false) {
   const url = assertSafeTarget(target);
   await mkdir(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
@@ -306,7 +306,9 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
         await context.close();
         continue;
       }
-      const hydration = await hydrateLazyContentForVisualCapture(page);
+      const hydration = hydrateLazyContent
+        ? { enabled: true, ...(await hydrateLazyContentForVisualCapture(page)) }
+        : { enabled: false };
       const renderViability = await assessRenderedPageViability(page);
       await page.screenshot({ path: file, fullPage: true, ...STABLE_SCREENSHOT_OPTIONS });
       const state = await page.evaluate(() => ({ title: document.title, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, activeElement: document.activeElement?.tagName ?? null }));
@@ -328,9 +330,9 @@ export async function captureDesignBaseline(target: string, outputDir: string, v
     data: { outputDir, captures, accessStatus, blockedViewportCount, renderStatus, unusableViewportCount, screenshotStability: STABLE_SCREENSHOT_OPTIONS, readinessPolicy: VISUAL_READINESS_POLICY },
     limits: [
       ...(blockedViewportCount > 0 ? ['One or more viewport captures hit an access/security interstitial; those screenshots are barrier evidence, not prospect design evidence.'] : []),
-      ...(unusableViewportCount > 0 ? ['One or more viewport captures contain insufficient meaningful visible content after bounded hydration; those captures are runtime limitation evidence and cannot support a negative prospect/site claim.'] : []),
+      ...(unusableViewportCount > 0 ? ['One or more viewport captures contain insufficient meaningful visible content after readiness checks; those captures are runtime limitation evidence and cannot support a negative prospect/site claim.'] : []),
       'Screenshot baseline is controlled-runtime evidence; interaction and assistive-technology behavior remain separate tests.',
-      'A bounded scroll pass runs before capture so lazy and scroll-triggered content can render; virtualized or nested scroll containers can still require a targeted check.',
+      'Scroll hydration is disabled by default to preserve sticky and scroll-sensitive baseline state; pass hydrate_lazy_content=true to opt in. Virtualized or nested scroll containers still require targeted checks.',
       SCREENSHOT_STABILITY_NOTE
     ]
   });

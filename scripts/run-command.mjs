@@ -110,7 +110,9 @@ const runPublicTarget = (target, index, total) => {
     const baselineDir = total === 1
       ? path.join(evidenceRoot, 'baseline')
       : path.join(evidenceRoot, 'baseline', String(index + 1).padStart(3, '0'));
-    child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target, baselineDir], common);
+    const baselineArgs = ['dist/src/cli.js', route.executor.name, target, baselineDir];
+    if (request.options?.hydrate_lazy_content === true) baselineArgs.push('--hydrate-lazy');
+    child = spawnSync(process.execPath, baselineArgs, common);
   } else {
     child = spawnSync(process.execPath, ['dist/src/cli.js', route.executor.name, target], common);
   }
@@ -172,7 +174,9 @@ const result = {
     selected_source_selectors: Array.isArray(source.selector_ids) ? source.selector_ids.filter((selector) => route.source_selectors?.includes(selector)) : []
   },
   source_context: source,
-  preconditions: {},
+  preconditions: command === 'design-baseline'
+    ? { hydrate_lazy_content: request.options?.hydrate_lazy_content === true }
+    : {},
   started_at: startedAt,
   completed_at: new Date().toISOString(),
   exit_code: failedItems[0]?.exit_code ?? 0,

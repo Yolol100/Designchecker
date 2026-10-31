@@ -26,6 +26,8 @@ jobs:
         run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Reject high-severity npm advisories
+        run: npm audit --audit-level=high --no-fund
       - run: npm run config:check
       - run: npm run check
       - run: npm run build

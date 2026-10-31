@@ -32,14 +32,36 @@ jobs:
           node-version: 22
       - name: Verify frozen source provenance
         run: test "$(cat legacy/checklist/UPSTREAM-COMMIT)" = "25bf9fd8ccefdd06cb4e7adf36e3ab332c76b854"
+      - name: Install audited root Lighthouse CLI
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Reject high-severity root npm advisories
+        run: npm audit --audit-level=high --no-fund
       - name: Install exact frozen dependencies
         run: npm ci --prefix legacy/checklist --ignore-scripts --no-audit --no-fund
+      - name: Reject high-severity legacy npm advisories
+        run: npm audit --prefix legacy/checklist --audit-level=high --no-fund
       - name: Install Chromium
         run: node legacy/checklist/node_modules/playwright/cli.js install --with-deps chromium
       - name: Syntax and contract tests
         run: |
           npm run --prefix legacy/checklist check
           npm test --prefix legacy/checklist
+      - name: Prove six genuine desktop and mobile Lighthouse reports on synthetic fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/lighthouse-fixture"
+          printf '%s\n' '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Website QA fixture</title></head><body><main><h1>Offline browser evidence</h1><p>Local test only.</p></main></body></html>' > "$RUNNER_TEMP/lighthouse-fixture/index.html"
+          python3 -m http.server 8766 --bind 127.0.0.1 --directory "$RUNNER_TEMP/lighthouse-fixture" > "$RUNNER_TEMP/lighthouse-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in 1 2 3 4 5; do
+            if curl -fsS 'http://127.0.0.1:8766/' >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS 'http://127.0.0.1:8766/' >/dev/null
+          export CHROME_PATH="$(node -e "console.log(require('./legacy/checklist/node_modules/playwright').chromium.executablePath())")"
+          bash scripts/run-lighthouse-six.sh 'http://127.0.0.1:8766/'
       - name: Run frozen public-test fixture from Designchecker root
         env:
           CHECKLIST_PERSIST_BROWSER_ARTIFACTS: "0"

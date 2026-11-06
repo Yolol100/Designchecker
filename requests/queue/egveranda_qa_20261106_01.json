@@ -1,0 +1,33 @@
+{
+  "request_id": "egveranda_qa_20261106_01",
+  "url": "https://egveranda.concept-webactueel-4.com/",
+  "level": "standard",
+  "task_type": "audit",
+  "target_environment": "staging",
+  "source_context": {
+    "project_id": "project-checklist",
+    "source_set_version": "2026-10-31.2-egveranda-media-kwaliteit-bronsync",
+    "manifest_sha256": "6fabb03996721eb172943759df975673b03f983ad66a7db9a5b1c6c86f22812a",
+    "selected_sources": [
+      "active/00-project-index-en-router.md",
+      "active/01-qa-proces-en-severity.md",
+      "active/11-evidence-levels-runtime-matrix.md",
+      "support/82-tool-en-browsermatrix.md",
+      "support/83-evidence-manifest-schema.json",
+      "support/84-runtime-matrix-schema.json",
+      "support/87-master-project-checklist.md",
+      "support/88-playwright-axe-adapter.md"
+    ],
+    "source_hashes": {
+      "active/00-project-index-en-router.md": "7ad9a2c5cd981396575eb09f772cfca44d5b87ac846f864b8749a8544830641f",
+      "active/01-qa-proces-en-severity.md": "787e2edb7b5d6bd07daabe2bacc8a91d801ea0561da6bc116be50138e53ed875",
+      "active/11-evidence-levels-runtime-matrix.md": "a499f579c2925dbc172d6dca880f7447f887638662c2e7d9c00357e7c3eddbd7",
+      "support/82-tool-en-browsermatrix.md": "8b6fbf32a90511af0d730da1a797bf0921e5cb074ed8013c4ca4092e0fb76f9e",
+      "support/83-evidence-manifest-schema.json": "4a732c3010d64cea159de367ba9f326d38f89b98fffb8c8aa2afb6426f2fe62d",
+      "support/84-runtime-matrix-schema.json": "9c6c6660e02193d126efbeb75b4943c5d7a82c1401852e69f6b72b9ee4576eb2",
+      "support/87-master-project-checklist.md": "cab813d21e9b9a9ed1941b20f0277e7f3743808450be57c3a1a7a5a20161388d",
+      "support/88-playwright-axe-adapter.md": "df184f07beec3d08af429d1fe65cf43b3b91298536c5ac8957d7435eb5b1e8ce"
+    },
+    "selection_basis": "EG Veranda staging read-only responsive, browser, accessibility and links baseline with canonical QA sources."
+  }
+}

@@ -10,7 +10,10 @@ permissions:
 
 jobs:
   cleanup-runtime-branch:
-    if: ${{ startsWith(github.event.workflow_run.head_branch, 'runtime/') }}
+    if: >-
+      ${{ github.event.workflow_run.event == 'push'
+          && github.event.workflow_run.head_repository.full_name == github.repository
+          && startsWith(github.event.workflow_run.head_branch, 'runtime/') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
@@ -18,12 +21,31 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RUNTIME_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          EXPECTED_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           case "$RUNTIME_BRANCH" in
             runtime/*) ;;
             *) echo 'Unexpected runtime branch' >&2; exit 2 ;;
           esac
+          if [[ ! "${EXPECTED_HEAD_SHA}" =~ ^[a-f0-9]{40}$ ]]; then
+            echo 'Invalid expected runtime branch SHA.' >&2
+            exit 2
+          fi
+          set +e
+          observed_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${RUNTIME_BRANCH}" --jq '.object.sha' 2>&1)"
+          observed_status=$?
+          set -e
+          if [[ "$observed_status" -ne 0 ]]; then
+            case "$observed_sha" in
+              *"HTTP 404"*|*"Not Found"*|*"not found"*) echo 'Runtime branch already absent.'; exit 0 ;;
+              *) printf '%s\n' "$observed_sha" >&2; exit "$observed_status" ;;
+            esac
+          fi
+          if [[ "$observed_sha" != "$EXPECTED_HEAD_SHA" ]]; then
+            echo "Runtime branch head changed since triggering run; keeping branch intact."
+            exit 0
+          fi
           set +e
           delete_output="$(gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$RUNTIME_BRANCH" 2>&1)"
           delete_status=$?

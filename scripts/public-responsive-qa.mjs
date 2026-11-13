@@ -249,9 +249,10 @@ try {
   // Bounded same-origin link check. Stop at the FIRST rate-limit response.
   // A 429 is not evidence of a broken link and must not trigger another batch.
   const { safeFetch } = await import('../legacy/checklist/src/net.js');
+  const blockedPaths = new Set(['wp-admin', 'wp-json', 'wp-login.php', 'xmlrpc.php']);
   const linkTargets = [...new Set(results.filter((r) => r.viewport === 'desktop-1440')
     .flatMap((r) => r.internal_links || []))].filter((url) =>
-      !/\\/(?:wp-admin|wp-json|wp-login\\.php|xmlrpc\\.php)(?:\\/|$)/i.test(new URL(url).pathname)
+      !blockedPaths.has(new URL(url).pathname.split('/')[1].toLowerCase())
     ).slice(0, 30);
   let rateLimited = false;
   for (let i = 0; i < linkTargets.length; i++) {

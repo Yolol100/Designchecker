@@ -2,7 +2,7 @@ name: Cleanup Designchecker runtime branch
 
 on:
   workflow_run:
-    workflows: ["webactueel-command"]
+    workflows: ["webactueel-command", "Public Responsive QA"]
     types: [completed]
 
 permissions:

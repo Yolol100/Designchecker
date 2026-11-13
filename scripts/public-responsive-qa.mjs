@@ -246,24 +246,36 @@ try {
       console.log(`${results.length}/${targets.length * viewports.length} ${target.slug} ${viewport.name} ${item.outcome}`);
     }
   }
-  // Bounded, same-origin link check. This probes only publicly visible, queryless HTTPS URLs.
+  // Bounded same-origin link check. Stop at the FIRST rate-limit response.
+  // A 429 is not evidence of a broken link and must not trigger another batch.
   const { safeFetch } = await import('../legacy/checklist/src/net.js');
+  const blockedPaths = new Set(['wp-admin', 'wp-json', 'wp-login.php', 'xmlrpc.php']);
   const linkTargets = [...new Set(results.filter((r) => r.viewport === 'desktop-1440')
-    .flatMap((r) => r.internal_links || []))].slice(0, 120);
-  for (let i = 0; i < linkTargets.length; i += 8) {
-    const batch = await Promise.all(linkTargets.slice(i, i + 8).map(async (url) => {
-      try {
-        let result = await safeFetch(url, { method: 'HEAD', allowQuery: false, timeoutMs: 8000 });
-        if ([403, 405].includes(result.response.status)) {
-          result = await safeFetch(url, { method: 'GET', allowQuery: false, timeoutMs: 8000 });
-        }
-        return { url, status: result.response.status, ok: result.response.status < 400 };
-      } catch (error) {
-        return { url, status: null, ok: false, error_type: error?.name || 'Error' };
+    .flatMap((r) => r.internal_links || []))].filter((url) =>
+      !blockedPaths.has(new URL(url).pathname.split('/')[1].toLowerCase())
+    ).slice(0, 30);
+  let rateLimited = false;
+  for (let i = 0; i < linkTargets.length; i++) {
+    const url = linkTargets[i];
+    if (rateLimited) {
+      linkChecks.push({ url, status: null, ok: null, classification: 'not_run_rate_limited' });
+      continue;
+    }
+    try {
+      let response = await safeFetch(url, { method: 'HEAD', allowQuery: false, timeoutMs: 8000 });
+      if ([403, 405].includes(response.response.status)) {
+        response = await safeFetch(url, { method: 'GET', allowQuery: false, timeoutMs: 8000 });
       }
-    }));
-    linkChecks.push(...batch);
+      const status = response.response.status;
+      rateLimited = status === 429;
+      linkChecks.push({ url, status, ok: status < 400,
+        classification: rateLimited ? 'rate_limited' : status < 400 ? 'verified_ok' : 'needs_review' });
+    } catch (error) {
+      linkChecks.push({ url, status: null, ok: null, classification: 'request_error',
+        error_type: error?.name || 'Error' });
+    }
     await report();
+    if (!rateLimited && i + 1 < linkTargets.length) await new Promise((resolve) => setTimeout(resolve, 750));
   }
 } finally {
   await report();

@@ -68,6 +68,7 @@ for (const target of targets) await assertPublicUrl(target.url, { allowQuery: fa
 const output = path.join('results', 'public-responsive', request.request_id);
 await fs.mkdir(output, { recursive: true });
 const results = [];
+let linkChecks = [];
 const proxy = await startPublicNetworkProxy();
 let browser;
 const started_at = new Date().toISOString();
@@ -78,8 +79,8 @@ const report = async () => {
     started_at, updated_at: new Date().toISOString(),
     expected: targets.length * viewports.length, observed: results.filter((r) => r.outcome === 'observed').length,
     errors: results.filter((r) => r.outcome !== 'observed').length,
-    limitations: ['No real phone or tablet hardware', 'No live form submission', 'Automated axe is not WCAG certification', 'Screenshots need manual interpretation'],
-    results
+    limitations: ['No real phone or tablet hardware', 'No live form submission', 'Automated axe is not WCAG certification', 'Screenshots need manual interpretation', 'Synthetic performance is not field Core Web Vitals'],
+    link_checks: linkChecks, results
   };
   await fs.writeFile(path.join(output, 'audit.json'), JSON.stringify(payload, null, 2));
   const esc = (x) => '"' + String(x ?? '').replaceAll('"', '""') + '"';
@@ -126,15 +127,50 @@ try {
           const viewportWidth = document.documentElement.clientWidth;
           const scrollWidth = document.documentElement.scrollWidth;
           const brokenImages = [...document.images].filter((img) => img.complete && img.naturalWidth === 0).length;
+          const imagesMissingAlt = [...document.images].filter((img) => !img.hasAttribute('alt')).length;
           const visibleMenuButtons = [...document.querySelectorAll('button.elementor-menu-toggle, button.menu-toggle, button[aria-label*="menu" i]')]
             .filter((x) => x.getClientRects().length).length;
           const widest = [...document.querySelectorAll('body *')].filter((el) => {
             const rect = el.getBoundingClientRect();
             return rect.width > 0 && rect.right > viewportWidth + 3 && getComputedStyle(el).position !== 'fixed';
           }).slice(0, 4).map((el) => ({ tag: el.tagName, right: Math.round(el.getBoundingClientRect().right) }));
+          const meta = {
+            title: document.title || null,
+            description: document.querySelector('meta[name="description"]')?.getAttribute('content') || null,
+            robots: document.querySelector('meta[name="robots"]')?.getAttribute('content') || null,
+            lang: document.documentElement.lang || null,
+            canonical: document.querySelector('link[rel~="canonical"]')?.href?.split('?')[0].split('#')[0] || null
+          };
+          const headings = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].slice(0, 50).map((el) => ({
+            level: Number(el.tagName[1]), text: (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 100)
+          }));
+          const internalLinks = [...new Set([...document.querySelectorAll('a[href]')].map((a) => {
+            try { const u = new URL(a.getAttribute('href'), location.href);
+              return u.protocol === 'https:' && u.origin === location.origin && !u.search ? u.origin + u.pathname : null;
+            } catch { return null; }
+          }).filter(Boolean))].slice(0, 150);
+          const menuCandidates = [...document.querySelectorAll(
+            '.elementor-menu-toggle, .menu-toggle, .hfe-nav-menu__toggle, button[aria-expanded], [aria-label*="menu" i]'
+          )].filter((el) => el.getClientRects().length).slice(0, 8).map((el) => ({
+            tag: el.tagName, role: el.getAttribute('role'), expanded: el.getAttribute('aria-expanded'),
+            classes: String(el.className || '').slice(0, 110)
+          }));
+          const formControls = [...document.querySelectorAll('form input,form select,form textarea')]
+            .filter((el) => el.type !== 'hidden').slice(0, 30).map((el) => ({
+              tag: el.tagName, type: el.getAttribute('type'), name: (el.getAttribute('name') || '').slice(0, 70),
+              label: (el.labels?.[0]?.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 70),
+              required: el.required === true,
+              options: el.tagName === 'SELECT' ? [...el.options].map((o) => (o.textContent || '').trim().slice(0, 55)) : undefined
+            }));
+          const navigation = performance.getEntriesByType('navigation')[0];
+          const navigationTiming = navigation ? {
+            ttfb_ms: Math.round(navigation.responseStart - navigation.requestStart),
+            dom_content_loaded_ms: Math.round(navigation.domContentLoadedEventEnd - navigation.startTime)
+          } : null;
           return { viewportWidth, scrollWidth, horizontalOverflow: scrollWidth > viewportWidth + 2,
-            brokenImages, h1Count: document.querySelectorAll('h1').length,
-            formCount: document.querySelectorAll('form').length, visibleMenuButtons, widest };
+            brokenImages, imagesMissingAlt, h1Count: document.querySelectorAll('h1').length,
+            formCount: document.querySelectorAll('form').length, visibleMenuButtons, widest,
+            meta, headings, internalLinks, menuCandidates, formControls, navigationTiming };
         });
         item.horizontal_overflow = dom.horizontalOverflow;
         item.scroll_width = dom.scrollWidth;
@@ -143,6 +179,15 @@ try {
         item.form_count = dom.formCount;
         item.visible_menu_buttons = dom.visibleMenuButtons;
         item.overflow_elements = dom.widest;
+        if (viewport.name === 'desktop-1440') {
+          item.meta = dom.meta;
+          item.headings = dom.headings;
+          item.internal_links = dom.internalLinks;
+          item.form_controls = dom.formControls;
+          item.images_missing_alt = dom.imagesMissingAlt;
+          item.navigation_timing = dom.navigationTiming;
+        }
+        if (viewport.name === 'mobile-390') item.mobile_menu_candidates = dom.menuCandidates;
         item.page_error_count = errors.length;
         item.blocked_write_requests = blockedWrites;
         if (item.http_status >= 400 || item.http_status === null) item.signals.push('HTTP error');
@@ -154,7 +199,10 @@ try {
           await page.addScriptTag({ content: axe.source });
           const a11y = await page.evaluate(async () => window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
           item.a11y_violations = a11y.violations.length;
-          item.a11y_issues = a11y.violations.slice(0, 12).map((v) => ({ rule: v.id, impact: v.impact, nodes: v.nodes.length }));
+          item.a11y_issues = a11y.violations.slice(0, 12).map((v) => ({
+            rule: v.id, impact: v.impact, nodes: v.nodes.length,
+            targets: v.nodes.slice(0, 4).flatMap((node) => node.target).slice(0, 6)
+          }));
           if (item.a11y_violations) item.signals.push('automated accessibility warnings');
         }
         if (screenshotViews.includes(viewport.name)) {
@@ -163,6 +211,27 @@ try {
           await fs.mkdir(path.join(output, 'screenshots'), { recursive: true });
           await page.screenshot({ path: path.join(output, relative), fullPage: true, animations: 'disabled', timeout: 20_000 });
           item.screenshot = relative;
+        }
+        if (viewport.name === 'mobile-390') {
+          const toggles = page.locator(
+            '.elementor-menu-toggle:visible, .menu-toggle:visible, .hfe-nav-menu__toggle:visible, button[aria-expanded]:visible, [aria-label*="menu" i]:visible'
+          );
+          item.menu_test = { identifiable_toggle: (await toggles.count()) > 0, clicked: false };
+          if (item.menu_test.identifiable_toggle) {
+            try {
+              const toggle = toggles.first();
+              const before = await toggle.getAttribute('aria-expanded');
+              await toggle.click({ timeout: 3500 });
+              const after = await toggle.getAttribute('aria-expanded');
+              const linksVisible = await page.locator('.elementor-nav-menu--dropdown a:visible, .sub-menu a:visible').count();
+              item.menu_test = { identifiable_toggle: true, clicked: true,
+                expanded_before: before, expanded_after: after, dropdown_links_visible: linksVisible };
+              if (before === after && linksVisible === 0) item.signals.push('mobile menu opening needs manual review');
+            } catch {
+              item.menu_test = { identifiable_toggle: true, clicked: false, reason: 'interaction_failed' };
+              item.signals.push('mobile menu interaction failed');
+            }
+          }
         }
         item.outcome = item.http_status && item.http_status < 400 ? 'observed' : 'error';
       } catch (error) {
@@ -176,6 +245,25 @@ try {
       if (results.length % 6 === 0) await report();
       console.log(`${results.length}/${targets.length * viewports.length} ${target.slug} ${viewport.name} ${item.outcome}`);
     }
+  }
+  // Bounded, same-origin link check. This probes only publicly visible, queryless HTTPS URLs.
+  const { safeFetch } = await import('../legacy/checklist/src/net.js');
+  const linkTargets = [...new Set(results.filter((r) => r.viewport === 'desktop-1440')
+    .flatMap((r) => r.internal_links || []))].slice(0, 120);
+  for (let i = 0; i < linkTargets.length; i += 8) {
+    const batch = await Promise.all(linkTargets.slice(i, i + 8).map(async (url) => {
+      try {
+        let result = await safeFetch(url, { method: 'HEAD', allowQuery: false, timeoutMs: 8000 });
+        if ([403, 405].includes(result.response.status)) {
+          result = await safeFetch(url, { method: 'GET', allowQuery: false, timeoutMs: 8000 });
+        }
+        return { url, status: result.response.status, ok: result.response.status < 400 };
+      } catch (error) {
+        return { url, status: null, ok: false, error_type: error?.name || 'Error' };
+      }
+    }));
+    linkChecks.push(...batch);
+    await report();
   }
 } finally {
   await report();

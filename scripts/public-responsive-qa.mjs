@@ -51,6 +51,8 @@ if (screenshotViews.length > 3 || screenshotViews.some((name) => !viewports.some
   throw new Error('Screenshots can be collected for at most three declared viewports.');
 }
 const samples = request.axe_viewports || [];
+const visualLayoutEnabled = request.visual_layout === true;
+if (request.visual_layout !== undefined && typeof request.visual_layout !== 'boolean') throw new Error('visual_layout must be boolean.');
 if (!Array.isArray(samples) || samples.length > 2 || samples.some((name) => !viewports.some((p) => p.name === name))) {
   throw new Error('Accessibility samples must refer to at most two declared viewports.');
 }
@@ -63,6 +65,7 @@ const { assertPublicUrl, isBlockedHostnameLiteral } = await import('../legacy/ch
 const { startPublicNetworkProxy } = await import('../legacy/checklist/src/public-proxy.js');
 const { chromium } = await import('playwright');
 const { default: axe } = await import('axe-core');
+const { captureVisualLayout, captureTextSpacingStress } = visualLayoutEnabled ? await import('./public-visual-layout.mjs') : {};
 await assertPublicUrl(site, { allowQuery: false });
 for (const target of targets) await assertPublicUrl(target.url, { allowQuery: false });
 const output = path.join('results', 'public-responsive', request.request_id);
@@ -79,15 +82,17 @@ const report = async () => {
     started_at, updated_at: new Date().toISOString(),
     expected: targets.length * viewports.length, observed: results.filter((r) => r.outcome === 'observed').length,
     errors: results.filter((r) => r.outcome !== 'observed').length,
-    limitations: ['No real phone or tablet hardware', 'No live form submission', 'Automated axe is not WCAG certification', 'Screenshots need manual interpretation', 'Synthetic performance is not field Core Web Vitals'],
+    limitations: ['No real phone or tablet hardware', 'No live form submission', 'Automated axe is not WCAG certification', 'Screenshots need manual interpretation', 'Synthetic performance is not field Core Web Vitals', 'Heuristic visual flags require manual review; not all 240 checklist points are automated'],
+    visual_layout_enabled: visualLayoutEnabled,
     link_checks: linkChecks, results
   };
   await fs.writeFile(path.join(output, 'audit.json'), JSON.stringify(payload, null, 2));
   const esc = (x) => '"' + String(x ?? '').replaceAll('"', '""') + '"';
-  const columns = ['slug', 'url', 'viewport', 'width', 'outcome', 'http_status', 'horizontal_overflow', 'broken_images', 'page_error_count', 'a11y_violations', 'signals'];
+  const columns = ['slug', 'url', 'viewport', 'width', 'outcome', 'http_status', 'horizontal_overflow', 'broken_images', 'page_error_count', 'a11y_violations', 'visual_layout_flags', 'text_spacing_clipping', 'signals'];
   const csv = [columns.join(','), ...results.map((r) => [r.slug, r.url, r.viewport, r.width, r.outcome,
     r.http_status, r.horizontal_overflow, r.broken_images, r.page_error_count,
-    r.a11y_violations, (r.signals || []).join(' | ')].map(esc).join(','))].join('\n') + '\n';
+    r.a11y_violations, r.visual_layout ? Object.keys(r.visual_layout.issue_counts || {}).join(' | ') : '',
+    r.text_spacing_stress?.after?.clipping_count ?? '', (r.signals || []).join(' | ')].map(esc).join(','))].join('\n') + '\n';
   await fs.writeFile(path.join(output, 'audit.csv'), csv);
 };
 try {
@@ -190,6 +195,19 @@ try {
         if (viewport.name === 'mobile-390') item.mobile_menu_candidates = dom.menuCandidates;
         item.page_error_count = errors.length;
         item.blocked_write_requests = blockedWrites;
+        if (visualLayoutEnabled) {
+          try {
+            item.visual_layout = await captureVisualLayout(page, { width: viewport.width, height: viewport.height });
+            if (Object.keys(item.visual_layout.issue_counts || {}).length) item.signals.push('visual layout flags for review');
+            if (['mobile-390', 'tablet-768', 'desktop-1440'].includes(viewport.name)) {
+              item.text_spacing_stress = await captureTextSpacingStress(page);
+              if (item.text_spacing_stress?.after?.clipping_count) item.signals.push('text spacing needs manual review');
+            }
+          } catch (error) {
+            item.visual_layout_error = error?.name || 'Error';
+            item.signals.push('visual layout audit incomplete');
+          }
+        }
         if (item.http_status >= 400 || item.http_status === null) item.signals.push('HTTP error');
         if (dom.horizontalOverflow) item.signals.push('horizontal overflow');
         if (dom.brokenImages) item.signals.push('broken images');

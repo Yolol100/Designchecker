@@ -191,7 +191,6 @@ export async function captureTextSpacingStress(page) {
       });
       return { before, after: { scroll_width: document.documentElement.scrollWidth, clipping_count: clipped.length,
         clipping_targets: clipped.slice(0, 6).map((e) => e.id || e.tagName + '.' + (typeof e.className === 'string' ? e.className.split(' ')[0] : '')) },
-        after: null },
         requires_manual_review: true };
     }, before);
   } finally {

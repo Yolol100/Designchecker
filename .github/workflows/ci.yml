@@ -36,6 +36,8 @@ jobs:
         run: node --check scripts/run-command.mjs
       - name: Validate public responsive website runner
         run: node --check scripts/public-responsive-qa.mjs
+      - name: Validate visual-layout evidence module
+        run: node --check scripts/public-visual-layout.mjs
       - name: Validate post-update healthcheck runner
         run: node --check scripts/run-healthcheck.mjs
       - run: npx playwright install --with-deps chromium
